@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct AuraAppApp: App {
+struct AuraApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
