@@ -1,0 +1,12 @@
+# API keys — never commit these!
+AuraApp/Config.swift
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcworkspace
+xcuserdata/
+
+# macOS
+.DS_Store
