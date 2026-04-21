@@ -10,8 +10,8 @@ import SwiftUI
 struct CurrentWeatherView: View {
     var body: some View {
         VStack {
-            Text("Current Weather").font(.instrumentSans)
-            Text("Current Weather").font(.instrumentSerif)
+            Text("Current Weather")
+            Text("Current Weather")
         }
     }
 }
