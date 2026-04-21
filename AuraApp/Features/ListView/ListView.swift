@@ -60,12 +60,6 @@ struct ListView: View {
             }
         }
         .overlay(FunFactAlert(showFunFactAlert: $showFunFactAlert))
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                BackButton()
-            }
-        }
         .task {
             await loadLocations()
         }

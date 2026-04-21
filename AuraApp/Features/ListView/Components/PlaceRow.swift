@@ -33,7 +33,7 @@ extension ListView {
                     let cityName = location.addressObj?.city ?? ""
                     
                     Text(cleanedName(location.name, country: country))
-                        .font(.headline)
+                        .font(.custom("InstrumentSans-Medium", size: 12))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     
@@ -41,7 +41,7 @@ extension ListView {
                     let addressParts = [cityName, country].filter { !$0.isEmpty }
                     if !addressParts.isEmpty {
                         Text(addressParts.joined(separator: ", "))
-                            .font(.caption)
+                            .font(.custom("InstrumentSans-Medium", size: 10))
                             .foregroundColor(.secondary)
                             .lineLimit(1)
                     }
@@ -54,12 +54,12 @@ extension ListView {
                              let timeDisplay = mins > 0 ? "\(mins) mins" : "1 min"
                              
                              Text("\(String(format: "%.1f", distDouble)) km • \(timeDisplay)")
-                                 .font(.caption2)
-                                 .foregroundColor(.secondary)
+                                .font(.custom("InstrumentSans-Medium", size: 10))
+                                .foregroundColor(.secondary)
                         } else {
                              Text("• 10 mins")
-                                 .font(.caption2)
-                                 .foregroundColor(.secondary)
+                                .font(.custom("InstrumentSans-Medium", size: 10))
+                                .foregroundColor(.secondary)
                         }
                     }
                 }

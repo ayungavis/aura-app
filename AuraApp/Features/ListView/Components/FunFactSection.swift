@@ -27,7 +27,7 @@ extension ListView {
                 }
                 
                 Text(funFactForCategory(category))
-                    .font(.subheadline)
+                    .font(.custom("InstrumentSans-Regular", size: 12))
                     .foregroundColor(.primary)
                     .lineSpacing(4)
             }

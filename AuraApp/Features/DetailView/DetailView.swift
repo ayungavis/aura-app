@@ -51,12 +51,6 @@ struct DetailView: View {
                 .edgesIgnoringSafeArea(.top)
             }
         }
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                BackButton()
-            }
-        }
         .task {
             await loadData()
         }
