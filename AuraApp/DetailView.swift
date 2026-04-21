@@ -316,7 +316,7 @@ struct ReviewCardView: View {
                     // Star rating
                     HStack(spacing: 2) {
                         // Using Array() because ForEach requires a constant range.
-                        // 0..<(variable) is computed at runtime and will crash.
+                        // 0..< (variable) is computed at runtime and will crash.
                         // max(0, ...) prevents negative ranges.
                         ForEach(Array(0..<max(0, review.rating ?? 0)), id: \.self) { _ in
                             Image(systemName: "star.fill")
