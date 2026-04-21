@@ -25,6 +25,9 @@ class TripAdvisorService {
 
     // Base URL for all TripAdvisor Content API requests
     private let baseURL = "https://api.content.tripadvisor.com/api/v1"
+    
+    // Cache service to save costs and improve speed
+    private let cache = LocalCache.shared
 
     // MARK: - 1. Search Locations
     // Searches for places matching a text query.
@@ -37,8 +40,14 @@ class TripAdvisorService {
         category: String? = nil
     ) async throws -> [LocationItem] {
 
-        // URLComponents helps us safely build a URL with query parameters.
-        // It handles special characters (spaces, etc.) automatically.
+        // 1. Check Cache first
+        let cacheKey = "search_\(query)_\(latLong ?? "none")_\(category ?? "none")"
+        if let cachedData = cache.load(key: cacheKey, as: [LocationItem].self) {
+            print("📦 CACHE HIT: Results for query '\(query)'")
+            return cachedData
+        }
+
+        // 2. Not in cache, build URL
         var components = URLComponents(string: "\(baseURL)/location/search")!
         var queryItems = [
             URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
@@ -56,18 +65,25 @@ class TripAdvisorService {
 
         components.queryItems = queryItems
 
-        // `guard` is like an `if` but forces you to exit if the condition fails.
-        // This avoids deeply-nested code.
         guard let url = components.url else {
             throw URLError(.badURL)
         }
 
-        // `URLSession.shared.data(from:)` is the async networking call.
-        // It returns a tuple: (data, response). We only need `data`.
+        // 3. Fetch from Network
+        print("🌐 NETWORK CALL: Searching for '\(query)'")
         let (data, _) = try await URLSession.shared.data(from: url)
+
+        // Debug: print raw response
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("🔍 Search Results Raw JSON: \(jsonString)")
+        }
 
         // JSONDecoder converts the raw JSON bytes into our Swift struct.
         let result = try JSONDecoder().decode(LocationSearchResponse.self, from: data)
+        
+        // 4. Save to Cache for next time
+        cache.save(result.data, key: cacheKey)
+        
         return result.data
     }
 
@@ -76,6 +92,13 @@ class TripAdvisorService {
     //
     // API docs: https://tripadvisor-content-api.readme.io/reference/getlocationdetails
     func getLocationDetails(locationId: String) async throws -> LocationDetail {
+        // 1. Check Cache
+        let cacheKey = "details_\(locationId)"
+        if let cachedData = cache.load(key: cacheKey, as: LocationDetail.self) {
+            print("📦 CACHE HIT: Details for \(locationId)")
+            return cachedData
+        }
+
         var components = URLComponents(string: "\(baseURL)/location/\(locationId)/details")!
         components.queryItems = [
             URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
@@ -86,8 +109,19 @@ class TripAdvisorService {
             throw URLError(.badURL)
         }
 
+        print("🌐 NETWORK CALL: Getting details for \(locationId)")
         let (data, _) = try await URLSession.shared.data(from: url)
+        
+        // Debug: print raw response
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("ℹ️ Location Details Raw JSON for \(locationId): \(jsonString)")
+        }
+
         let result = try JSONDecoder().decode(LocationDetail.self, from: data)
+        
+        // 2. Save to Cache
+        cache.save(result, key: cacheKey)
+        
         return result
     }
 
@@ -96,6 +130,13 @@ class TripAdvisorService {
     //
     // API docs: https://tripadvisor-content-api.readme.io/reference/getlocationphotos
     func getLocationPhotos(locationId: String) async throws -> [LocationPhoto] {
+        // 1. Check Cache
+        let cacheKey = "photos_\(locationId)"
+        if let cachedData = cache.load(key: cacheKey, as: [LocationPhoto].self) {
+            print("📦 CACHE HIT: Photos for \(locationId)")
+            return cachedData
+        }
+
         var components = URLComponents(string: "\(baseURL)/location/\(locationId)/photos")!
         components.queryItems = [
             URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
@@ -107,12 +148,16 @@ class TripAdvisorService {
             throw URLError(.badURL)
         }
 
+        print("🌐 NETWORK CALL: Getting photos for \(locationId)")
         let (data, _) = try await URLSession.shared.data(from: url)
 
         // Debug: print raw response if decoding fails
-        // The API may return an error object instead of { "data": [...] }
         do {
             let result = try JSONDecoder().decode(LocationPhotosResponse.self, from: data)
+            
+            // 2. Save to Cache
+            cache.save(result.data, key: cacheKey)
+            
             return result.data
         } catch {
             let rawResponse = String(data: data, encoding: .utf8) ?? "Unable to read response"
@@ -127,6 +172,13 @@ class TripAdvisorService {
     //
     // API docs: https://tripadvisor-content-api.readme.io/reference/getlocationreviews
     func getLocationReviews(locationId: String) async throws -> [LocationReview] {
+        // 1. Check Cache
+        let cacheKey = "reviews_\(locationId)"
+        if let cachedData = cache.load(key: cacheKey, as: [LocationReview].self) {
+            print("📦 CACHE HIT: Reviews for \(locationId)")
+            return cachedData
+        }
+
         var components = URLComponents(string: "\(baseURL)/location/\(locationId)/reviews")!
         components.queryItems = [
             URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
@@ -138,11 +190,16 @@ class TripAdvisorService {
             throw URLError(.badURL)
         }
 
+        print("🌐 NETWORK CALL: Getting reviews for \(locationId)")
         let (data, _) = try await URLSession.shared.data(from: url)
 
         // Same resilient decoding pattern as photos
         do {
             let result = try JSONDecoder().decode(LocationReviewsResponse.self, from: data)
+            
+            // 2. Save to Cache
+            cache.save(result.data, key: cacheKey)
+            
             return result.data
         } catch {
             let rawResponse = String(data: data, encoding: .utf8) ?? "Unable to read response"
