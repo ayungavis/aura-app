@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Logo: View {
     var body: some View {
-        Text(AppConfig.appName)
+        CustomText(AppConfig.appName, variant: .custom(family: .serif, weight: .regular, size: 36, style: .headline))
     }
 }
 
