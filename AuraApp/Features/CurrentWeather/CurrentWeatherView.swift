@@ -9,9 +9,12 @@ import SwiftUI
 
 struct CurrentWeatherView: View {
     var body: some View {
-        VStack {
-            Text("Current Weather")
-            Text("Current Weather")
+        ZStack {
+            Layout(direction: .vertical, justify: .start) {
+                Layout(direction: .horizontal, justify: .start, horizontalPadding: 0) {
+                    CurrentTemperature()
+                }
+            }
         }
     }
 }
