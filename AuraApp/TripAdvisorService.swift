@@ -13,20 +13,22 @@
 import Foundation
 
 // MARK: - Why a class?
+
 // We use a class (not struct) because this is a "service" — a shared utility
 // that performs network operations. We don't need value-type semantics here.
 //
 // MARK: - What is `async`?
+
 // `async` means the function can pause while waiting for the network response
 // without blocking the UI. You call it with `await` from a `.task {}` modifier
 // or another async context.
 
 class TripAdvisorService {
-
-    // Base URL for all TripAdvisor Content API requests
+    /// Base URL for all TripAdvisor Content API requests
     private let baseURL = "https://api.content.tripadvisor.com/api/v1"
 
     // MARK: - 1. Search Locations
+
     // Searches for places matching a text query.
     // Example: searchLocations(query: "beach Bali", category: "attractions")
     //
@@ -36,12 +38,11 @@ class TripAdvisorService {
         latLong: String? = nil,
         category: String? = nil
     ) async throws -> [LocationItem] {
-
         // URLComponents helps us safely build a URL with query parameters.
         // It handles special characters (spaces, etc.) automatically.
         var components = URLComponents(string: "\(baseURL)/location/search")!
         var queryItems = [
-            URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
+            URLQueryItem(name: "key", value: "TRIPADVIOR_API_KEY"),
             URLQueryItem(name: "searchQuery", value: query),
             URLQueryItem(name: "language", value: "en"),
         ]
@@ -72,13 +73,14 @@ class TripAdvisorService {
     }
 
     // MARK: - 2. Get Location Details
-    // Fetches comprehensive info about a single location.
-    //
-    // API docs: https://tripadvisor-content-api.readme.io/reference/getlocationdetails
+
+    /// Fetches comprehensive info about a single location.
+    ///
+    /// API docs: https://tripadvisor-content-api.readme.io/reference/getlocationdetails
     func getLocationDetails(locationId: String) async throws -> LocationDetail {
         var components = URLComponents(string: "\(baseURL)/location/\(locationId)/details")!
         components.queryItems = [
-            URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
+            URLQueryItem(name: "key", value: "TRIPADVIOR_API_KEY"),
             URLQueryItem(name: "language", value: "en"),
         ]
 
@@ -87,18 +89,18 @@ class TripAdvisorService {
         }
 
         let (data, _) = try await URLSession.shared.data(from: url)
-        let result = try JSONDecoder().decode(LocationDetail.self, from: data)
-        return result
+        return try JSONDecoder().decode(LocationDetail.self, from: data)
     }
 
     // MARK: - 3. Get Location Photos
-    // Fetches up to 5 recent photos for a location.
-    //
-    // API docs: https://tripadvisor-content-api.readme.io/reference/getlocationphotos
+
+    /// Fetches up to 5 recent photos for a location.
+    ///
+    /// API docs: https://tripadvisor-content-api.readme.io/reference/getlocationphotos
     func getLocationPhotos(locationId: String) async throws -> [LocationPhoto] {
         var components = URLComponents(string: "\(baseURL)/location/\(locationId)/photos")!
         components.queryItems = [
-            URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
+            URLQueryItem(name: "key", value: "TRIPADVIOR_API_KEY"),
             URLQueryItem(name: "language", value: "en"),
             URLQueryItem(name: "limit", value: "5"),
         ]
@@ -118,18 +120,19 @@ class TripAdvisorService {
             let rawResponse = String(data: data, encoding: .utf8) ?? "Unable to read response"
             print("📸 Photos decode error for location \(locationId): \(error)")
             print("📸 Raw response: \(rawResponse)")
-            return []  // Return empty array so the page still shows
+            return [] // Return empty array so the page still shows
         }
     }
 
     // MARK: - 4. Get Location Reviews
-    // Fetches up to 5 most recent reviews for a location.
-    //
-    // API docs: https://tripadvisor-content-api.readme.io/reference/getlocationreviews
+
+    /// Fetches up to 5 most recent reviews for a location.
+    ///
+    /// API docs: https://tripadvisor-content-api.readme.io/reference/getlocationreviews
     func getLocationReviews(locationId: String) async throws -> [LocationReview] {
         var components = URLComponents(string: "\(baseURL)/location/\(locationId)/reviews")!
         components.queryItems = [
-            URLQueryItem(name: "key", value: Config.tripAdvisorAPIKey),
+            URLQueryItem(name: "key", value: "TRIPADVIOR_API_KEY"),
             URLQueryItem(name: "language", value: "en"),
             URLQueryItem(name: "limit", value: "5"),
         ]
