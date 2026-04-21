@@ -23,6 +23,7 @@ struct ListView: View {
     @State private var locations: [LocationItem] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showFunFactAlert = false
 
     // MARK: - Body
 
@@ -63,6 +64,7 @@ struct ListView: View {
                 }
             }
         }
+        .overlay(funFactAlertOverlay)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -121,8 +123,15 @@ struct ListView: View {
             HStack {
                 Text("Fun fact")
                     .font(.custom("InstrumentSerif-Regular", size: 24))
-                Image(systemName: "info.circle")
-                    .font(.caption)
+                
+                Button(action: {
+                    showFunFactAlert = true
+                }) {
+                    Image(systemName: "info.circle")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
             }
             
             Text(funFactForCategory(category))
@@ -134,12 +143,63 @@ struct ListView: View {
         .padding(.vertical, 8)
     }
 
+    private var funFactAlertOverlay: some View {
+        ZStack {
+            if showFunFactAlert {
+                // Dimmed background
+                Color.black.opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .transition(.opacity)
+                    .onTapGesture {
+                        showFunFactAlert = false
+                    }
+                
+                // Alert Box
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Fun Fact Notice")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("This fun fact is randomly generated from publicly available internet sources and may vary in accuracy.")
+                            .font(.body)
+                        
+                        Text("Enjoy it as light, motivational content.")
+                            .font(.body)
+                    }
+                    .foregroundColor(.secondary)
+                    
+                    Button(action: {
+                        showFunFactAlert = false
+                    }) {
+                        Text("Got it 👌")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(25)
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.top, 8)
+                }
+                .padding(30)
+                .background(
+                    RoundedRectangle(cornerRadius: 32)
+                        .fill(Color.white)
+                )
+                .padding(.horizontal, 30)
+                .transition(.scale(scale: 0.9).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showFunFactAlert)
+    }
+
     private var placesSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Recommended places")
                 .font(.custom("InstrumentSerif-Regular", size: 28))
             
-            VStack(spacing: 16) {
+            VStack(spacing: 8) {
                 if let error = errorMessage {
                     Text(error).foregroundColor(.red).font(.caption)
                 } else {
@@ -163,16 +223,40 @@ struct ListView: View {
 
         do {
             // Search based on category
+            // We pass a central Bali latLong to get actual distances
             locations = try await service.searchLocations(
                 query: category + " Bali",
+                latLong: "-8.717,115.174", // Kuta, Bali
                 category: "attractions"
             )
+            
+            // Once we have text data, we can stop loading
+            isLoading = false
+            
+            // Now fetch images for each location in the background
+            await fetchImagesForLocations()
         } catch {
             errorMessage = "Failed to load places."
             print("Search error: \(error)")
+            isLoading = false
         }
+    }
 
-        isLoading = false
+    /// Fetches a photo for each location sequentially to avoid overloading the API
+    private func fetchImagesForLocations() async {
+        // Use a loop to fetch photos for each location
+        for index in locations.indices {
+            let locationId = locations[index].locationId
+            do {
+                if let firstPhoto = try await service.getLocationPhotos(locationId: locationId).first {
+                    // Update the image URL in the state array
+                    // This triggers a UI refresh for that specific row
+                    locations[index].imageUrl = firstPhoto.images?.medium?.url
+                }
+            } catch {
+                print("📸 Error fetching photo for \(locationId): \(error)")
+            }
+        }
     }
 
     // MARK: - Helpers
@@ -221,19 +305,57 @@ struct RecommendedPlaceRow: View {
     var body: some View {
         HStack(spacing: 16) {
             // Square thumbnail
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(UIColor.systemGray5))
-                .frame(width: 80, height: 80)
-                .overlay(Image(systemName: "photo").foregroundColor(.secondary))
+            Group {
+                if let imageUrl = location.imageUrl, let url = URL(string: imageUrl) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        placeholderImage
+                    }
+                } else {
+                    placeholderImage
+                }
+            }
+            .frame(width: 80, height: 80)
+            .clipped()
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(location.name)
+                let country = location.addressObj?.country ?? ""
+                let cityName = location.addressObj?.city ?? ""
+                
+                // 1. Dynamic Name Trimming
+                // If the name ends with the country name, trim it for a cleaner look.
+                let cleanedName: String = {
+                    let original = location.name
+                    guard !country.isEmpty else { return original }
+                    
+                    // Global case-insensitive replacement of the country name
+                    var result = original.replacingOccurrences(of: country, with: "", options: [.caseInsensitive])
+                    
+                    // Cleanup: remove double spaces, leading/trailing spaces, and stray punctuation like " - " or ", "
+                    // Matches characters like hyphen, comma, or space if they are now leading/trailing or doubled
+                    let cleanupPattern = "^[-,\\s]+|[-,\\s]+$|([-,\\s]){2,}"
+                    if let regex = try? NSRegularExpression(pattern: cleanupPattern) {
+                        let range = NSRange(location: 0, length: result.utf16.count)
+                        result = regex.stringByReplacingMatches(in: result, options: [], range: range, withTemplate: "$1")
+                    }
+                    
+                    result = result.trimmingCharacters(in: .whitespacesAndNewlines)
+                    return result.isEmpty ? original : result
+                }()
+                
+                Text(cleanedName)
                     .font(.headline)
                     .foregroundColor(.primary)
                     .lineLimit(1)
                 
-                if let address = location.addressObj?.addressString {
-                    Text(address)
+                // 2. Dynamic Address Row
+                // Format: "City, Country"
+                let addressParts = [cityName, country].filter { !$0.isEmpty }
+                if !addressParts.isEmpty {
+                    Text(addressParts.joined(separator: ", "))
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
@@ -242,28 +364,36 @@ struct RecommendedPlaceRow: View {
                 Spacer()
                 
                 HStack {
-                    Text("4.8 km • 10 mins")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 2) {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
-                            .font(.system(size: 8))
-                        Text("4.8 (1k+ reviews)")
-                            .font(.system(size: 8))
-                            .foregroundColor(.secondary)
+                    if let distString = location.distance, let distDouble = Double(distString) {
+                         // Motorcycle speed estimate: 12 km/h (traffic-adjusted average)
+                         // min = (dist / 12) * 60 = dist * 5
+                         let mins = Int(ceil(distDouble * 5))
+                         let timeDisplay = mins > 0 ? "\(mins) mins" : "1 min"
+                         
+                         Text("\(String(format: "%.1f", distDouble)) km • \(timeDisplay)")
+                             .font(.caption2)
+                             .foregroundColor(.secondary)
+                    } else {
+                         Text("• 10 mins")
+                             .font(.caption2)
+                             .foregroundColor(.secondary)
                     }
+                    
+                    // Rating and reviews removed to reduce API costs (not present in search response)
                 }
             }
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 12)
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
+    }
+    
+    private var placeholderImage: some View {
+        Rectangle()
+            .fill(Color(UIColor.systemGray5))
+            .overlay(
+                Image(systemName: "photo")
+                    .foregroundColor(.secondary)
+            )
     }
 }
 

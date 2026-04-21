@@ -23,6 +23,10 @@ struct LocationItem: Codable, Identifiable {
     let locationId: String       // Unique ID on TripAdvisor (e.g. "258730")
     let name: String             // Place name (e.g. "Kuta Beach")
     let addressObj: AddressObj?  // Address info (optional — not always present)
+    let distance: String?        // Distance from the provided latLong (returned if latLong is passed)
+    
+    // This is not in the API response, we will populate it manually
+    var imageUrl: String?
 
     // MARK: - CodingKeys
     // The API uses snake_case (e.g. "location_id") but Swift convention is camelCase.
@@ -31,6 +35,7 @@ struct LocationItem: Codable, Identifiable {
         case locationId = "location_id"
         case name
         case addressObj = "address_obj"
+        case distance
     }
 
     // MARK: - Identifiable
