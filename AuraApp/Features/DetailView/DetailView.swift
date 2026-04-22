@@ -56,16 +56,6 @@ struct DetailView: View {
             }
             
             if !isLoading {
-                // Top Right Actions
-                VStack {
-                    HStack {
-                        Spacer()
-                        TopRightActions(detail: detail, openMapsAction: openMaps)
-                    }
-                    .padding(.horizontal)
-                    Spacer()
-                }
-                
                 // Sticky Bottom Button
                 VStack {
                     Spacer()
@@ -89,6 +79,14 @@ struct DetailView: View {
         .task {
             await loadData()
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if !isLoading {
+                    TopRightActions(detail: detail, openMapsAction: openMaps)
+                }
+            }
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     // MARK: - Load Data
@@ -143,27 +141,22 @@ struct TopRightActions: View {
             
             Menu {
                 if let phone = detail?.phone, !phone.isEmpty {
-                    Button(action: {
-                        if let url = URL(string: "tel:\(phone.replacingOccurrences(of: " ", with: ""))") {
-                            UIApplication.shared.open(url)
+                    let cleanPhone = phone.filter { "0123456789+".contains($0) }
+                    if let url = URL(string: "tel://\(cleanPhone)") {
+                        Link(destination: url) {
+                            Label("Call", systemImage: "phone")
                         }
-                    }) {
-                        Label("Call", systemImage: "phone")
                     }
                 }
                 
                 if let website = detail?.website, !website.isEmpty, let url = URL(string: website) {
-                    Button(action: {
-                        UIApplication.shared.open(url)
-                    }) {
+                    Link(destination: url) {
                         Label("Open website", systemImage: "globe")
                     }
                 }
                 
-                if let webUrl = detail?.webUrl, !webUrl.isEmpty {
-                    Button(action: {
-                        shareUrl(urlString: webUrl)
-                    }) {
+                if let webUrl = detail?.webUrl, !webUrl.isEmpty, let url = URL(string: webUrl) {
+                    ShareLink(item: url) {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
                 }
@@ -171,31 +164,11 @@ struct TopRightActions: View {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.black)
+                    .contentShape(Rectangle()) // Ensures tap area is correct
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-        )
-    }
-    
-    private func shareUrl(urlString: String) {
-        guard let url = URL(string: urlString) else { return }
-        let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            
-            if let popover = activityVC.popoverPresentationController {
-                popover.sourceView = rootVC.view
-                popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
-                popover.permittedArrowDirections = []
-            }
-            
-            rootVC.present(activityVC, animated: true)
-        }
     }
 }
 

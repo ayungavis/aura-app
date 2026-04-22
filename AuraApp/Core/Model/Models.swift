@@ -74,9 +74,11 @@ struct LocationDetail: Codable {
     let numReviews: String?      // e.g. "1250" (also a String)
     let phone: String?
     let website: String?         // The place's own website
+    let email: String?
     let category: Category?
     let subcategory: [Subcategory]?
     let photoCount: String?
+    let hours: HoursObj?
 
     enum CodingKeys: String, CodingKey {
         case locationId = "location_id"
@@ -85,8 +87,17 @@ struct LocationDetail: Codable {
         case addressObj = "address_obj"
         case rating
         case numReviews = "num_reviews"
-        case phone, website, category, subcategory
+        case phone, website, email, category, subcategory
         case photoCount = "photo_count"
+        case hours
+    }
+}
+
+struct HoursObj: Codable {
+    let weekdayText: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case weekdayText = "weekday_text"
     }
 }
 

@@ -36,6 +36,12 @@ extension DetailView {
                         )
                 }
                 
+                Image("effect-dithered")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: UIScreen.main.bounds.width, height: 400)
+                    .clipped()
+                
                 LinearGradient(
                     gradient: Gradient(colors: [.clear, .white]),
                     startPoint: .top,
