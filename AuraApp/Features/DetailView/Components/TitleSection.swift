@@ -23,21 +23,7 @@ extension DetailView {
                             .font(.custom("InstrumentSans-Medium", size: 14))
                             .fontWeight(.medium)
                         
-                        HStack(spacing: 2) {
-                            let ratingDouble = Double(ratingStr) ?? 0.0
-                            ForEach(0..<5) { index in
-                                let diff = ratingDouble - Double(index)
-                                if diff >= 0.75 {
-                                    Image(systemName: "star.fill")
-                                } else if diff >= 0.25 {
-                                    Image(systemName: "star.leadinghalf.filled")
-                                } else {
-                                    Image(systemName: "star")
-                                }
-                            }
-                        }
-                        .foregroundColor(.black)
-                        .font(.caption2)
+                        StarRatingView(rating: Double(ratingStr) ?? 0.0, font: .caption2)
                         
                         Text("(\(numReviews))")
                             .font(.custom("InstrumentSans-Medium", size: 14))

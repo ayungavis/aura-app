@@ -14,7 +14,7 @@ extension DetailView {
                 Text(review.text ?? "No review text")
                     .font(.custom("InstrumentSans-Regular", size: 12))
                     .foregroundColor(.primary)
-                    .lineLimit(3)
+                    .lineLimit(4)
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 8) {
@@ -28,14 +28,7 @@ extension DetailView {
                         )
 
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 2) {
-                            ForEach(Array(0..<max(0, review.rating ?? 0)), id: \.self) { _ in
-                                Image(systemName: "star.fill")
-                                    .resizable()
-                                    .frame(width: 8, height: 8)
-                                    .foregroundColor(.black)
-                            }
-                        }
+                        StarRatingView(rating: Double(review.rating ?? 0), starSize: 8)
 
                         Text("\(review.user?.username ?? "Anonymous") • \(formattedDate(review.publishedDate))")
                             .font(.custom("InstrumentSans-Regular", size: 10))
@@ -43,7 +36,7 @@ extension DetailView {
                     }
                 }
             }
-            .frame(width: 260, alignment: .topLeading)
+            .frame(width: 210, alignment: .topLeading)
         }
 
         private func formattedDate(_ dateString: String?) -> String {
