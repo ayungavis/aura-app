@@ -66,6 +66,7 @@ extension ListView {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)
+            .contentShape(Rectangle())
         }
         
         private var placeholderImage: some View {
