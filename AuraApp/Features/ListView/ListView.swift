@@ -95,11 +95,20 @@ struct ListView: View {
         errorMessage = nil
 
         do {
-            locations = try await service.searchLocations(
+            let fetchedLocations = try await service.searchLocations(
                 query: category + " Bali",
                 latLong: "-8.717,115.174", // Kuta, Bali
                 category: "attractions"
             )
+            
+            // Sort by distance (nearest first)
+            // If distance is missing, place at the end
+            self.locations = fetchedLocations.sorted {
+                let d1 = Double($0.distance ?? "") ?? Double.infinity
+                let d2 = Double($1.distance ?? "") ?? Double.infinity
+                return d1 < d2
+            }
+            
             isLoading = false
             await fetchImagesForLocations()
         } catch {
