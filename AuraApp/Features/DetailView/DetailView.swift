@@ -28,7 +28,7 @@ struct DetailView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             VStack {
                 if isLoading {
                     Spacer()
@@ -56,20 +56,34 @@ struct DetailView: View {
             }
             
             if !isLoading {
-                Button(action: openMaps) {
+                // Top Right Actions
+                VStack {
                     HStack {
-                        Image(systemName: "location.fill") // Using location arrow for directions
-                        Text("Get directions")
-                            .font(.custom("InstrumentSans-SemiBold", size: 16))
+                        Spacer()
+                        TopRightActions(detail: detail, openMapsAction: openMaps)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.black)
-                    .foregroundColor(.white)
-                    .cornerRadius(30)
+                    .padding(.horizontal)
+                    Spacer()
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 16)
+                
+                // Sticky Bottom Button
+                VStack {
+                    Spacer()
+                    Button(action: openMaps) {
+                        HStack {
+                            Image(systemName: "location.fill") // Using location arrow for directions
+                            Text("Get directions")
+                                .font(.custom("InstrumentSans-SemiBold", size: 16))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.black)
+                        .foregroundColor(.white)
+                        .cornerRadius(30)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 16)
+                }
             }
         }
         .task {
@@ -111,6 +125,76 @@ struct DetailView: View {
         if let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
            let url = URL(string: "http://maps.apple.com/?q=\(encoded)") {
             UIApplication.shared.open(url)
+        }
+    }
+}
+
+struct TopRightActions: View {
+    let detail: LocationDetail?
+    let openMapsAction: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            Button(action: openMapsAction) {
+                Image(systemName: "location")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.black)
+            }
+            
+            Menu {
+                if let phone = detail?.phone, !phone.isEmpty {
+                    Button(action: {
+                        if let url = URL(string: "tel:\(phone.replacingOccurrences(of: " ", with: ""))") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        Label("Call", systemImage: "phone")
+                    }
+                }
+                
+                if let website = detail?.website, !website.isEmpty, let url = URL(string: website) {
+                    Button(action: {
+                        UIApplication.shared.open(url)
+                    }) {
+                        Label("Open website", systemImage: "globe")
+                    }
+                }
+                
+                if let webUrl = detail?.webUrl, !webUrl.isEmpty {
+                    Button(action: {
+                        shareUrl(urlString: webUrl)
+                    }) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.black)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+        )
+    }
+    
+    private func shareUrl(urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            
+            if let popover = activityVC.popoverPresentationController {
+                popover.sourceView = rootVC.view
+                popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
+            
+            rootVC.present(activityVC, animated: true)
         }
     }
 }
