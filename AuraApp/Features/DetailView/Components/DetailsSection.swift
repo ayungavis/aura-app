@@ -20,7 +20,15 @@ extension DetailView {
                         ContactRow(title: "Phone", value: phone, url: URL(string: "tel://\(cleanPhone)"))
                     }
                     if let website = detail?.website, !website.isEmpty {
-                        ContactRow(title: "Website", value: website, url: URL(string: website))
+                        let cleanWebsite = website
+                            .replacingOccurrences(of: "https://", with: "")
+                            .replacingOccurrences(of: "http://", with: "")
+                        ContactRow(
+                            title: "Website",
+                            value: cleanWebsite,
+                            url: URL(string: website),
+                            icon: "arrow.up.right.square"
+                        )
                     }
                     if let email = detail?.email, !email.isEmpty {
                         ContactRow(title: "Email", value: email, url: URL(string: "mailto:\(email)"))

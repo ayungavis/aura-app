@@ -10,6 +10,7 @@ extension DetailView {
         let title: String
         let value: String
         var url: URL? = nil
+        var icon: String? = nil
 
         var body: some View {
             HStack(alignment: .top) {
@@ -21,16 +22,32 @@ extension DetailView {
 
                 if let url = url {
                     Link(destination: url) {
-                        Text(value)
-                            .font(.custom("InstrumentSans-Medium", size: 14))
-                            .foregroundColor(.blue)
-                            .multilineTextAlignment(.trailing)
+                        HStack(spacing: 4) {
+                            Text(value)
+                                .font(.custom("InstrumentSans-Medium", size: 14))
+                                .foregroundColor(.blue)
+                                .multilineTextAlignment(.trailing)
+                            
+                            if let icon = icon {
+                                Image(systemName: icon)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.blue)
+                            }
+                        }
                     }
                 } else {
-                    Text(value)
-                        .font(.custom("InstrumentSans-Medium", size: 14))
-                        .foregroundColor(title == "Address" || title == "Hours" ? .primary : .blue)
-                        .multilineTextAlignment(.trailing)
+                    HStack(spacing: 4) {
+                        Text(value)
+                            .font(.custom("InstrumentSans-Medium", size: 14))
+                            .foregroundColor(title == "Address" || title == "Hours" ? .primary : .blue)
+                            .multilineTextAlignment(.trailing)
+                            
+                        if let icon = icon {
+                            Image(systemName: icon)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(title == "Address" || title == "Hours" ? .primary : .blue)
+                        }
+                    }
                 }
             }
         }
