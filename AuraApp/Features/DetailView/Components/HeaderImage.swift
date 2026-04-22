@@ -10,7 +10,7 @@ extension DetailView {
         let photos: [LocationPhoto]
         
         var body: some View {
-            Group {
+            ZStack(alignment: .bottom) {
                 if let firstPhoto = photos.first,
                    let urlString = firstPhoto.images?.large?.url,
                    let url = URL(string: urlString) {
@@ -23,18 +23,25 @@ extension DetailView {
                             .fill(Color(UIColor.systemGray5))
                             .overlay(ProgressView())
                     }
-                    .frame(width: UIScreen.main.bounds.width, height: 300)
+                    .frame(width: UIScreen.main.bounds.width, height: 400)
                     .clipped()
                 } else {
                     Rectangle()
                         .fill(Color(UIColor.systemGray5))
-                        .frame(width: UIScreen.main.bounds.width, height: 300)
+                        .frame(width: UIScreen.main.bounds.width, height: 400)
                         .overlay(
                             Image(systemName: "photo")
                                 .font(.largeTitle)
                                 .foregroundColor(.secondary)
                         )
                 }
+                
+                LinearGradient(
+                    gradient: Gradient(colors: [.clear, .white]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 120)
             }
         }
     }

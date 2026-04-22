@@ -13,13 +13,14 @@ extension DetailView {
         var body: some View {
             HStack(alignment: .top) {
                 Text(title)
-                    .font(.subheadline)
+                    .font(.custom("InstrumentSans-Medium", size: 14))
                     .foregroundColor(.secondary)
 
                 Spacer()
 
                 Text(value)
-                    .font(.subheadline)
+                    .font(.custom("InstrumentSans-Medium", size: 14))
+                    .foregroundColor(title == "Address" ? .primary : .blue)
                     .multilineTextAlignment(.trailing)
             }
         }

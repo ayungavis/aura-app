@@ -12,7 +12,7 @@ extension DetailView {
         var body: some View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Details")
-                    .font(.headline)
+                    .font(.custom("InstrumentSerif-Regular", size: 28))
 
                 VStack(spacing: 12) {
                     if let phone = detail?.phone, !phone.isEmpty {

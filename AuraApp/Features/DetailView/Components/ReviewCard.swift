@@ -12,19 +12,19 @@ extension DetailView {
         var body: some View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(review.text ?? "No review text")
-                    .font(.footnote)
+                    .font(.custom("InstrumentSans-Regular", size: 12))
                     .foregroundColor(.primary)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 8) {
-                    Circle()
+                    Rectangle()
                         .fill(Color.black)
-                        .frame(width: 28, height: 28)
+                        .frame(width: 32, height: 32)
                         .overlay(
                             Image(systemName: "person.fill")
                                 .foregroundColor(.white)
-                                .font(.system(size: 14))
+                                .font(.system(size: 16))
                         )
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -33,20 +33,17 @@ extension DetailView {
                                 Image(systemName: "star.fill")
                                     .resizable()
                                     .frame(width: 8, height: 8)
-                                    .foregroundColor(.yellow)
+                                    .foregroundColor(.black)
                             }
                         }
 
                         Text("\(review.user?.username ?? "Anonymous") • \(formattedDate(review.publishedDate))")
-                            .font(.caption2)
+                            .font(.custom("InstrumentSans-Regular", size: 10))
                             .foregroundColor(.secondary)
                     }
                 }
             }
-            .padding(16)
-            .frame(width: 220, alignment: .topLeading)
-            .background(Color(UIColor.systemGray6))
-            .cornerRadius(16)
+            .frame(width: 260, alignment: .topLeading)
         }
 
         private func formattedDate(_ dateString: String?) -> String {

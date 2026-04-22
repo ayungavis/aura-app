@@ -77,7 +77,7 @@ struct ListView: View {
                     Text(error).foregroundColor(.red).font(.caption)
                 } else {
                     ForEach(locations) { location in
-                        NavigationLink(destination: DetailView(locationId: location.locationId)) {
+                        NavigationLink(destination: DetailView(locationId: location.locationId, distance: location.distance)) {
                             PlaceRow(location: location)
                         }
                         .buttonStyle(.plain)

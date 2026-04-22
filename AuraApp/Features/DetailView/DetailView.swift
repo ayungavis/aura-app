@@ -14,6 +14,7 @@ struct DetailView: View {
 
     // MARK: - Input
     let locationId: String
+    var distance: String? = nil
 
     // MARK: - Service
     private let service = TripAdvisorService()
@@ -27,28 +28,48 @@ struct DetailView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack {
-            if isLoading {
-                Spacer()
-                ProgressView("Loading...")
-                Spacer()
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Top Header Image
-                        HeaderImage(photos: photos)
+        ZStack(alignment: .bottom) {
+            VStack {
+                if isLoading {
+                    Spacer()
+                    ProgressView("Loading...")
+                    Spacer()
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Top Header Image
+                            HeaderImage(photos: photos)
 
-                        // Main Content
-                        VStack(alignment: .leading, spacing: 24) {
-                            TitleSection(detail: detail)
-                            PhotosSection(photos: photos)
-                            ReviewsSection(reviews: reviews)
-                            DetailsSection(detail: detail)
+                            // Main Content
+                            VStack(alignment: .leading, spacing: 32) {
+                                TitleSection(detail: detail, distance: distance)
+                                PhotosSection(photos: photos)
+                                ReviewsSection(reviews: reviews, webUrl: detail?.webUrl)
+                                DetailsSection(detail: detail)
+                            }
+                            .padding(.vertical, 20)
+                            .padding(.bottom, 80) // Space for sticky button
                         }
-                        .padding(.vertical, 20)
                     }
+                    .edgesIgnoringSafeArea(.top)
                 }
-                .edgesIgnoringSafeArea(.top)
+            }
+            
+            if !isLoading {
+                Button(action: openMaps) {
+                    HStack {
+                        Image(systemName: "location.fill") // Using location arrow for directions
+                        Text("Get directions")
+                            .font(.custom("InstrumentSans-SemiBold", size: 16))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(30)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 16)
             }
         }
         .task {
@@ -80,6 +101,17 @@ struct DetailView: View {
         }
 
         isLoading = false
+    }
+    
+    private func openMaps() {
+        let name = detail?.name ?? ""
+        let address = detail?.addressObj?.addressString ?? ""
+        let query = [name, address].filter { !$0.isEmpty }.joined(separator: ", ")
+        
+        if let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let url = URL(string: "http://maps.apple.com/?q=\(encoded)") {
+            UIApplication.shared.open(url)
+        }
     }
 }
 
