@@ -8,6 +8,7 @@ import SwiftUI
 extension DetailView {
     struct HeaderImage: View {
         let photos: [LocationPhoto]
+        var onTap: (() -> Void)? = nil
         
         var body: some View {
             ZStack(alignment: .bottom) {
@@ -51,6 +52,10 @@ extension DetailView {
                     endPoint: .bottom
                 )
                 .frame(height: 120)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onTap?()
             }
         }
     }

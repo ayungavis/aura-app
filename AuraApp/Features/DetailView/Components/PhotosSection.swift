@@ -10,6 +10,7 @@ extension DetailView {
         let photos: [LocationPhoto]
         var photoCount: String? = nil
         var webUrl: String? = nil
+        var onPhotoTap: ((Int) -> Void)? = nil
         
         var body: some View {
             VStack(alignment: .leading, spacing: 16) {
@@ -40,7 +41,7 @@ extension DetailView {
                 } else {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
-                            ForEach(photos) { photo in
+                            ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
                                 if let urlString = photo.images?.large?.url,
                                    let url = URL(string: urlString) {
                                     AsyncImage(url: url) { image in
@@ -54,6 +55,10 @@ extension DetailView {
                                     }
                                     .frame(width: 140, height: 140)
                                     .clipped()
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        onPhotoTap?(index)
+                                    }
                                 }
                             }
                         }

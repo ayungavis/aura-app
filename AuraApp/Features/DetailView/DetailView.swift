@@ -24,6 +24,7 @@ struct DetailView: View {
     @State private var photos: [LocationPhoto] = []
     @State private var reviews: [LocationReview] = []
     @State private var isLoading = true
+    @State private var selectedPhotoIndex: Int? = nil
 
     // MARK: - Body
 
@@ -38,12 +39,23 @@ struct DetailView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 0) {
                             // Top Header Image
-                            HeaderImage(photos: photos)
+                            HeaderImage(photos: photos) {
+                                if !photos.isEmpty {
+                                    selectedPhotoIndex = 0
+                                }
+                            }
 
                             // Main Content
                             VStack(alignment: .leading, spacing: 32) {
                                 TitleSection(detail: detail, distance: distance)
-                                PhotosSection(photos: photos, photoCount: detail?.photoCount, webUrl: detail?.webUrl)
+                                PhotosSection(
+                                    photos: photos,
+                                    photoCount: detail?.photoCount,
+                                    webUrl: detail?.webUrl,
+                                    onPhotoTap: { index in
+                                        selectedPhotoIndex = index
+                                    }
+                                )
                                 ReviewsSection(reviews: reviews, numReviews: detail?.numReviews, webUrl: detail?.webUrl)
                                 DetailsSection(detail: detail)
                             }
@@ -87,6 +99,21 @@ struct DetailView: View {
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
+        .fullScreenCover(item: Binding(
+            get: { selectedPhotoIndex.map { PhotoIdentifier(index: $0) } },
+            set: { selectedPhotoIndex = $0?.index }
+        )) { ident in
+            PhotoGalleryView(
+                photos: photos,
+                locationName: detail?.name,
+                selectedPhotoIndex: $selectedPhotoIndex
+            )
+        }
+    }
+    
+    struct PhotoIdentifier: Identifiable {
+        let index: Int
+        var id: Int { index }
     }
 
     // MARK: - Load Data
