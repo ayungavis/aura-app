@@ -82,7 +82,7 @@ struct DetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if !isLoading {
-                    TopRightActions(detail: detail, openMapsAction: openMaps)
+                    TopRightActions(detail: detail)
                 }
             }
         }
@@ -129,46 +129,34 @@ struct DetailView: View {
 
 struct TopRightActions: View {
     let detail: LocationDetail?
-    let openMapsAction: () -> Void
     
     var body: some View {
-        HStack(spacing: 20) {
-            Button(action: openMapsAction) {
-                Image(systemName: "location")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.black)
+        Menu {
+            if let phone = detail?.phone, !phone.isEmpty {
+                let cleanPhone = phone.filter { "0123456789+".contains($0) }
+                if let url = URL(string: "tel://\(cleanPhone)") {
+                    Link(destination: url) {
+                        Label("Call", systemImage: "phone")
+                    }
+                }
             }
             
-            Menu {
-                if let phone = detail?.phone, !phone.isEmpty {
-                    let cleanPhone = phone.filter { "0123456789+".contains($0) }
-                    if let url = URL(string: "tel://\(cleanPhone)") {
-                        Link(destination: url) {
-                            Label("Call", systemImage: "phone")
-                        }
-                    }
+            if let website = detail?.website, !website.isEmpty, let url = URL(string: website) {
+                Link(destination: url) {
+                    Label("Open website", systemImage: "globe")
                 }
-                
-                if let website = detail?.website, !website.isEmpty, let url = URL(string: website) {
-                    Link(destination: url) {
-                        Label("Open website", systemImage: "globe")
-                    }
-                }
-                
-                if let webUrl = detail?.webUrl, !webUrl.isEmpty, let url = URL(string: webUrl) {
-                    ShareLink(item: url) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.black)
-                    .contentShape(Rectangle()) // Ensures tap area is correct
             }
+            
+            if let webUrl = detail?.webUrl, !webUrl.isEmpty, let url = URL(string: webUrl) {
+                ShareLink(item: url) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.black)                
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
     }
 }
 
