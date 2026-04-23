@@ -25,7 +25,9 @@ struct AppRootView: View {
 
     var body: some View {
         ZStack {
-            CurrentWeatherView()
+            NavigationStack {
+                ListView(category: "Running")
+            }
 
             if !router.isSplashFinished {
                 SplashScreenView()

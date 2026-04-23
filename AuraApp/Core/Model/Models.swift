@@ -23,6 +23,10 @@ struct LocationItem: Codable, Identifiable {
     let locationId: String       // Unique ID on TripAdvisor (e.g. "258730")
     let name: String             // Place name (e.g. "Kuta Beach")
     let addressObj: AddressObj?  // Address info (optional — not always present)
+    let distance: String?        // Distance from the provided latLong (returned if latLong is passed)
+    
+    // This is not in the API response, we will populate it manually
+    var imageUrl: String?
 
     // MARK: - CodingKeys
     // The API uses snake_case (e.g. "location_id") but Swift convention is camelCase.
@@ -31,6 +35,7 @@ struct LocationItem: Codable, Identifiable {
         case locationId = "location_id"
         case name
         case addressObj = "address_obj"
+        case distance
     }
 
     // MARK: - Identifiable
@@ -69,9 +74,11 @@ struct LocationDetail: Codable {
     let numReviews: String?      // e.g. "1250" (also a String)
     let phone: String?
     let website: String?         // The place's own website
+    let email: String?
     let category: Category?
     let subcategory: [Subcategory]?
     let photoCount: String?
+    let hours: HoursObj?
 
     enum CodingKeys: String, CodingKey {
         case locationId = "location_id"
@@ -80,8 +87,17 @@ struct LocationDetail: Codable {
         case addressObj = "address_obj"
         case rating
         case numReviews = "num_reviews"
-        case phone, website, category, subcategory
+        case phone, website, email, category, subcategory
         case photoCount = "photo_count"
+        case hours
+    }
+}
+
+struct HoursObj: Codable {
+    let weekdayText: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case weekdayText = "weekday_text"
     }
 }
 
@@ -163,11 +179,21 @@ struct LocationReview: Codable, Identifiable {
 struct ReviewUser: Codable {
     let username: String?
     let userLocation: UserLocation?
+    let avatar: AvatarImages?
 
     enum CodingKeys: String, CodingKey {
         case username
         case userLocation = "user_location"
+        case avatar
     }
+}
+
+struct AvatarImages: Codable {
+    let thumbnail: String?
+    let small: String?
+    let medium: String?
+    let large: String?
+    let original: String?
 }
 
 struct UserLocation: Codable {
