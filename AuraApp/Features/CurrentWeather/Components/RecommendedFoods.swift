@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct RecommendedFoods: View {
+  @Environment(AppRouter.self) private var router
+
   var body: some View {
     Layout(direction: .vertical, spacing: 16) {
       SectionHeader(title: "Recommended Foods").padding(.horizontal, 20)
@@ -22,6 +24,9 @@ struct RecommendedFoods: View {
               .fixedSize()
               .padding(.leading, index == 0 ? 20 : 0)
               .padding(.trailing, index == RECOMMENDED_FOODS.count - 1 ? 20 : 0)
+              .onTapGesture {
+                router.navigate(to: .list(category: item.title))
+              }
           }
         }
       }
