@@ -27,6 +27,27 @@ struct ListView: View {
             // Background color
             Color(red: 250/255, green: 250/255, blue: 250/255).edgesIgnoringSafeArea(.all)
 
+            // Dither Effect Background
+            ZStack(alignment: .top) {
+                Image("effect-dithered")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 350)
+                    .clipped()
+                
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 250/255, green: 250/255, blue: 250/255).opacity(0),
+                        Color(red: 250/255, green: 250/255, blue: 250/255)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 350)
+            }
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
