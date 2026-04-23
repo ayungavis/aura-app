@@ -18,14 +18,29 @@ extension DetailView {
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 8) {
-                    Rectangle()
-                        .fill(Color.black)
+                    if let avatarUrl = review.user?.avatar?.thumbnail,
+                       let url = URL(string: avatarUrl) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Rectangle()
+                                .fill(Color.black)
+                                .overlay(ProgressView().tint(.white).scaleEffect(0.5))
+                        }
                         .frame(width: 32, height: 32)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .foregroundColor(.white)
-                                .font(.system(size: 16))
-                        )
+                        .clipped()
+                    } else {
+                        Rectangle()
+                            .fill(Color.black)
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16))
+                            )
+                    }
 
                     VStack(alignment: .leading, spacing: 2) {
                         StarRatingView(rating: Double(review.rating ?? 0), starSize: 8)
@@ -60,6 +75,6 @@ extension DetailView {
 }
 
 #Preview {
-    DetailView.ReviewCard(review: LocationReview(id: 1, title: "Great", text: "Lovely place!", rating: 5, publishedDate: "2024-04-20T10:00:00Z", user: ReviewUser(username: "John", userLocation: nil)))
+    DetailView.ReviewCard(review: LocationReview(id: 1, title: "Great", text: "Lovely place!", rating: 5, publishedDate: "2024-04-20T10:00:00Z", user: ReviewUser(username: "John", userLocation: nil, avatar: nil)))
         .padding()
 }

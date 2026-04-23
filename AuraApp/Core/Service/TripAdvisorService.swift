@@ -175,7 +175,7 @@ class TripAdvisorService {
         // 1. Check Cache
         let cacheKey = "reviews_\(locationId)"
         if let cachedData = cache.load(key: cacheKey, as: [LocationReview].self) {
-            print("📦 CACHE HIT: Reviews for \(locationId)")
+            print("📦 CACHE HIT: Reviews for \(locationId) (\(cachedData.count) items found)")
             return cachedData
         }
 
@@ -190,12 +190,18 @@ class TripAdvisorService {
             throw URLError(.badURL)
         }
 
-        print("🌐 NETWORK CALL: Getting reviews for \(locationId)")
+        print("🌐 NETWORK CALL: Getting reviews for \(locationId) with limit 5")
         let (data, _) = try await URLSession.shared.data(from: url)
+
+        // Debug: print raw response
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("📝 Reviews Raw JSON for \(locationId): \(jsonString)")
+        }
 
         // Same resilient decoding pattern as photos
         do {
             let result = try JSONDecoder().decode(LocationReviewsResponse.self, from: data)
+            print("✅ Decoded \(result.data.count) reviews")
             
             // 2. Save to Cache
             cache.save(result.data, key: cacheKey)
@@ -204,7 +210,6 @@ class TripAdvisorService {
         } catch {
             let rawResponse = String(data: data, encoding: .utf8) ?? "Unable to read response"
             print("📝 Reviews decode error for location \(locationId): \(error)")
-            print("📝 Raw response: \(rawResponse)")
             return []
         }
     }

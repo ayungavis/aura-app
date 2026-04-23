@@ -179,11 +179,21 @@ struct LocationReview: Codable, Identifiable {
 struct ReviewUser: Codable {
     let username: String?
     let userLocation: UserLocation?
+    let avatar: AvatarImages?
 
     enum CodingKeys: String, CodingKey {
         case username
         case userLocation = "user_location"
+        case avatar
     }
+}
+
+struct AvatarImages: Codable {
+    let thumbnail: String?
+    let small: String?
+    let medium: String?
+    let large: String?
+    let original: String?
 }
 
 struct UserLocation: Codable {

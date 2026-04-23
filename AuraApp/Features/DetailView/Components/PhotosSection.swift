@@ -8,16 +8,35 @@ import SwiftUI
 extension DetailView {
     struct PhotosSection: View {
         let photos: [LocationPhoto]
+        var photoCount: String? = nil
+        var webUrl: String? = nil
         
         var body: some View {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Photos")
-                    .font(.custom("InstrumentSerif-Regular", size: 28))
+                HStack {
+                    Text("Photos")
+                        .font(.custom("InstrumentSerif-Regular", size: 28))
+                    
+                    Spacer()
+                    
+                    if let urlString = webUrl, let url = URL(string: urlString) {
+                        Link(destination: url) {
+                            HStack(spacing: 4) {
+                                Text("See more photos (\(photoCount ?? "0"))")
+                                Image(systemName: "arrow.up.right.square")
+                            }
+                            .font(.custom("InstrumentSans-Medium", size: 12))
+                            .foregroundColor(.blue)
+                        }
+                    }
+                }
+                .padding(.horizontal)
 
                 if photos.isEmpty {
                     Text("No photos available")
                         .font(.custom("InstrumentSans-Medium", size: 14))
                         .foregroundColor(.secondary)
+                        .padding(.horizontal)
                 } else {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
@@ -38,10 +57,10 @@ extension DetailView {
                                 }
                             }
                         }
+                        .padding(.horizontal)
                     }
                 }
             }
-            .padding(.horizontal)
         }
     }
 }

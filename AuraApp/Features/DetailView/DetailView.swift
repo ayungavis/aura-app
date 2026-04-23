@@ -43,8 +43,8 @@ struct DetailView: View {
                             // Main Content
                             VStack(alignment: .leading, spacing: 32) {
                                 TitleSection(detail: detail, distance: distance)
-                                PhotosSection(photos: photos)
-                                ReviewsSection(reviews: reviews, webUrl: detail?.webUrl)
+                                PhotosSection(photos: photos, photoCount: detail?.photoCount, webUrl: detail?.webUrl)
+                                ReviewsSection(reviews: reviews, numReviews: detail?.numReviews, webUrl: detail?.webUrl)
                                 DetailsSection(detail: detail)
                             }
                             .padding(.vertical, 20)

@@ -23,12 +23,14 @@ extension DetailView {
                             .fill(Color(UIColor.systemGray5))
                             .overlay(ProgressView())
                     }
-                    .frame(width: UIScreen.main.bounds.width, height: 400)
+                    .containerRelativeFrame(.horizontal)
+                    .frame(height: 400)
                     .clipped()
                 } else {
                     Rectangle()
                         .fill(Color(UIColor.systemGray5))
-                        .frame(width: UIScreen.main.bounds.width, height: 400)
+                        .containerRelativeFrame(.horizontal)
+                        .frame(height: 400)
                         .overlay(
                             Image(systemName: "photo")
                                 .font(.largeTitle)
@@ -39,7 +41,8 @@ extension DetailView {
                 Image("effect-dithered")
                     .resizable()
                     .scaledToFill()
-                    .frame(width: UIScreen.main.bounds.width, height: 400)
+                    .containerRelativeFrame(.horizontal)
+                    .frame(height: 400)
                     .clipped()
                 
                 LinearGradient(
