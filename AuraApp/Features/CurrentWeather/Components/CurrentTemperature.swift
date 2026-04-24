@@ -6,10 +6,9 @@
 //
 
 import SwiftUI
-import WeatherKit
 
 struct CurrentTemperature: View {
-    let weather: CurrentWeather?
+    let weather: CurrentWeatherData?
     let locationName: String?
 
     var body: some View {
@@ -36,7 +35,7 @@ struct CurrentTemperature: View {
 
     private var temperatureString: String {
         guard let weather else { return "--°" }
-        return weather.temperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+        return "\(Int(weather.temperature.rounded()))°"
     }
 
     private var conditionDescription: String {

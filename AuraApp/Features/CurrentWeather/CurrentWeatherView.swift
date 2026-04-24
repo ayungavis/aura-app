@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import WeatherKit
 
 struct CurrentWeatherView: View {
     @StateObject private var viewModel = CurrentWeatherViewModel()

@@ -2,10 +2,11 @@
 //  WeatherServiceProtocol.swift
 //  AuraApp
 //
+//  Created by Wahyu Kurniawan on 23/04/26.
+//
 
 import CoreLocation
-import WeatherKit
 
 protocol WeatherServiceProtocol: AnyObject {
-    func fetchWeatherData(for location: CLLocation) async throws -> Weather
+  func fetchWeatherData(for location: CLLocation) async throws -> WeatherResponse
 }

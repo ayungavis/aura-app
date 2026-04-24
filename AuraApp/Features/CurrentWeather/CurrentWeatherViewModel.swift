@@ -2,15 +2,16 @@
 //  CurrentWeatherViewModel.swift
 //  AuraApp
 //
+//  Created by Wahyu Kurniawan on 23/04/26.
+//
 
 import Combine
 import CoreLocation
 import SwiftUI
-import WeatherKit
 
 @MainActor
 class CurrentWeatherViewModel: ObservableObject {
-  @Published var currentWeather: CurrentWeather?
+  @Published var currentWeather: CurrentWeatherData?
   @Published var hourlyForecast: [Forecast] = []
   @Published var isLoading = false
   @Published var error: Error?
@@ -24,7 +25,9 @@ class CurrentWeatherViewModel: ObservableObject {
     weatherService: WeatherServiceProtocol? = nil,
     locationManager: LocationManagerProtocol? = nil
   ) {
-    self.weatherService = weatherService ?? (WeatherService.shared as! WeatherServiceProtocol)
+    self.weatherService = weatherService ?? (
+      OpenMeteoWeatherService.shared as WeatherServiceProtocol
+    )
     self.locationManager = locationManager ?? LocationManager()
     setupCallbacks()
   }
@@ -56,14 +59,12 @@ class CurrentWeatherViewModel: ObservableObject {
 
     do {
       let weather = try await weatherService.fetchWeatherData(for: location)
-      currentWeather = weather.currentWeather
-      hourlyForecast = weather.hourlyForecast.forecast.prefix(24).map { hour in
+      currentWeather = weather.current
+      hourlyForecast = weather.hourly.map { hour in
         Forecast(
           time: hour.date.formatted(.dateTime.hour()),
-          systemImage: "",
-          temperature: hour.temperature.formatted(
-            .measurement(numberFormatStyle: .number.precision(.fractionLength(0)))
-          ),
+          systemImage: hour.condition.systemImageName(isDay: weather.current.isDay),
+          temperature: "\(Int(hour.temperature.rounded()))°",
           caption: nil
         )
       }

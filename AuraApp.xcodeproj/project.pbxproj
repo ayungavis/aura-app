@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A20841732F9B4E810089833E /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A20841722F9B4E810089833E /* OpenMeteoSdk */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A2663C7D2F90C9FA008D27B0 /* AuraApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AuraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -50,6 +54,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A20841732F9B4E810089833E /* OpenMeteoSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +97,7 @@
 			);
 			name = AuraApp;
 			packageProductDependencies = (
+				A20841722F9B4E810089833E /* OpenMeteoSdk */,
 			);
 			productName = AuraApp;
 			productReference = A2663C7D2F90C9FA008D27B0 /* AuraApp.app */;
@@ -121,6 +127,9 @@
 			);
 			mainGroup = A2663C742F90C9FA008D27B0;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A20841712F9B4E810089833E /* XCRemoteSwiftPackageReference "sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A2663C7E2F90C9FA008D27B0 /* Products */;
 			projectDirPath = "";
@@ -379,6 +388,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A20841712F9B4E810089833E /* XCRemoteSwiftPackageReference "sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/open-meteo/sdk.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A20841722F9B4E810089833E /* OpenMeteoSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A20841712F9B4E810089833E /* XCRemoteSwiftPackageReference "sdk" */;
+			productName = OpenMeteoSdk;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A2663C752F90C9FA008D27B0 /* Project object */;
 }
