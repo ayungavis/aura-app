@@ -9,11 +9,14 @@ import Combine
 import CoreLocation
 
 @MainActor
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate, LocationManagerProtocol {
   private let manager = CLLocationManager()
 
   @Published var location: CLLocation?
   @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
+
+  var onLocationUpdate: ((CLLocation) -> Void)?
+  var onAuthChange: ((CLAuthorizationStatus) -> Void)?
 
   override init() {
     super.init()
@@ -27,15 +30,20 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   }
 
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    location = locations.last
+    guard let location = locations.last else { return }
+    self.location = location
+    AppLogger.locationUpdate("\(location.coordinate.latitude), \(location.coordinate.longitude)")
+    onLocationUpdate?(location)
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    print("Failed to get location: \(error.localizedDescription)")
+    AppLogger.locationError(error)
   }
 
   func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
     authorizationStatus = manager.authorizationStatus
+    AppLogger.locationAuthChange(String(describing: manager.authorizationStatus))
+    onAuthChange?(manager.authorizationStatus)
     if manager.authorizationStatus == .authorizedWhenInUse {
       manager.requestLocation()
     }
