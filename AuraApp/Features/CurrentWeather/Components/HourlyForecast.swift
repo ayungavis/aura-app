@@ -8,28 +8,30 @@
 import SwiftUI
 
 struct HourlyForecast: View {
-  var body: some View {
-    Layout(direction: .vertical, spacing: 28) {
-      Layout(direction: .horizontal, horizontalPadding: 16) {
-        CustomText(
-          "Clouds gather softly above. The daylight moves in silence. The sky feels calm today."
-        )
-      }
+    let forecasts: [Forecast]
 
-      ScrollView(.horizontal, showsIndicators: false) {
-        Layout(direction: .horizontal, spacing: 28) {
-          ForEach(Array(HOURLY_FORECAST_DATA.enumerated()), id: \.element.id) { index, item in
-            ForecastItem(forecast: item)
-              .fixedSize()
-              .padding(.leading, index == 0 ? 20 : 0)
-              .padding(.trailing, index == HOURLY_FORECAST_DATA.count - 1 ? 20 : 0)
-          }
+    var body: some View {
+        Layout(direction: .vertical, spacing: 28) {
+            Layout(direction: .horizontal, horizontalPadding: 16) {
+                CustomText(
+                    "Clouds gather softly above. The daylight moves in silence. The sky feels calm today."
+                )
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                Layout(direction: .horizontal, spacing: 28) {
+                    ForEach(Array(forecasts.enumerated()), id: \.element.id) { index, item in
+                        ForecastItem(forecast: item)
+                            .fixedSize()
+                            .padding(.leading, index == 0 ? 20 : 0)
+                            .padding(.trailing, index == forecasts.count - 1 ? 20 : 0)
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
 
 #Preview {
-  HourlyForecast()
+    HourlyForecast(forecasts: HOURLY_FORECAST_DATA)
 }

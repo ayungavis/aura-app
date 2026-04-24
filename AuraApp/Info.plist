@@ -4,6 +4,8 @@
 <dict>
 	<key>ATSApplicationFontsPath</key>
 	<string>Fonts</string>
+	<key>TRIPADVISOR_API_KEY</key>
+	<string>$(TRIPADVISOR_API_KEY)</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>InstrumentSans-Bold.ttf</string>
