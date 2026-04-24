@@ -134,6 +134,24 @@ struct LocationPhoto: Codable, Identifiable {
     let id: Int
     let images: PhotoImages?
     let caption: String?
+    let publishedDate: String?
+    let user: ReviewUser?
+    let source: PhotoSource?
+
+    enum CodingKeys: String, CodingKey {
+        case id, images, caption, user, source
+        case publishedDate = "published_date"
+    }
+}
+
+struct PhotoSource: Codable {
+    let name: String?
+    let localizedName: String?
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case localizedName = "localized_name"
+    }
 }
 
 /// Container for the different image sizes TripAdvisor provides.
