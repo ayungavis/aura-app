@@ -14,17 +14,31 @@
 		A2DF70EB2F97536800B83CB4 /* Exceptions for "AuraApp" folder in "AuraApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Config.xcconfig,
+				Example.xcconfig,
 				Info.plist,
 			);
 			target = A2663C7C2F90C9FA008D27B0 /* AuraApp */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		A2083E802F9B33F20089833E /* Exceptions for "AuraApp" folder in "Compile Sources" phase from "AuraApp" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = A2663C792F90C9FA008D27B0 /* Sources */;
+			membershipExceptions = (
+				Config.xcconfig,
+				Example.xcconfig,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A2663C7F2F90C9FA008D27B0 /* AuraApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				A2DF70EB2F97536800B83CB4 /* Exceptions for "AuraApp" folder in "AuraApp" target */,
+				A2083E802F9B33F20089833E /* Exceptions for "AuraApp" folder in "Compile Sources" phase from "AuraApp" target */,
 			);
 			path = AuraApp;
 			sourceTree = "<group>";
@@ -140,6 +154,8 @@
 /* Begin XCBuildConfiguration section */
 		A2663C862F90C9FB008D27B0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -203,6 +219,8 @@
 		};
 		A2663C872F90C9FB008D27B0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -259,9 +277,12 @@
 		};
 		A2663C892F90C9FB008D27B0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AuraApp/AuraApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -296,13 +317,16 @@
 		};
 		A2663C8A2F90C9FB008D27B0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AuraApp/AuraApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U96VKD93X4;
+				DEVELOPMENT_TEAM = QHL64K2LPL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AuraApp/Info.plist;
