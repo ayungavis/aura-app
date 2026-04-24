@@ -1,5 +1,6 @@
-# API keys — never commit these!
-AuraApp/Config.swift
+# Env
+*.xcconfig
+!Example.xcconfig
 
 # Xcode
 build/

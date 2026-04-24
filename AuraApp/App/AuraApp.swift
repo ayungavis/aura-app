@@ -11,6 +11,10 @@ import SwiftUI
 struct AuraApp: App {
   @State private var router = AppRouter()
 
+  init() {
+    AppConfig.validate()
+  }
+
   var body: some Scene {
     WindowGroup {
       AppRootView()
