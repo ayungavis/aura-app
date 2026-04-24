@@ -4,8 +4,8 @@
 <dict>
 	<key>ATSApplicationFontsPath</key>
 	<string>Fonts</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Aura needs your location to show weather and recommend nearby activities.</string>
+	<key>TRIPADVISOR_API_KEY</key>
+	<string>$(TRIPADVISOR_API_KEY)</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>InstrumentSans-Bold.ttf</string>
@@ -14,9 +14,5 @@
 		<string>InstrumentSans-SemiBold.ttf</string>
 		<string>InstrumentSerif-Regular.ttf</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
-	<key>TRIPADVISOR_API_KEY</key>
-	<string>$(TRIPADVISOR_API_KEY)</string>
 </dict>
 </plist>
