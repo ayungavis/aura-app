@@ -15,6 +15,8 @@ struct DetailView: View {
     // MARK: - Input
     let locationId: String
     var distance: String? = nil
+    let initialImageUrl: String?
+    let animation: Namespace.ID
 
     // MARK: - Service
     private let service = TripAdvisorService()
@@ -29,23 +31,55 @@ struct DetailView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack {
-            VStack {
-                if isLoading {
-                    Spacer()
-                    ProgressView("Loading...")
-                    Spacer()
-                } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // Top Header Image
-                            HeaderImage(photos: photos) {
-                                if !photos.isEmpty {
-                                    selectedPhotoIndex = 0
-                                }
-                            }
+        mainContent
+            .task {
+                await loadData()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !isLoading {
+                        TopRightActions(detail: detail)
+                    }
+                }
+            }
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .fullScreenCover(item: photoIdentifierBinding) { ident in
+                PhotoGalleryView(
+                    photos: photos,
+                    locationName: detail?.name,
+                    selectedPhotoIndex: $selectedPhotoIndex
+                )
+            }
+            .navigationTransition(.zoom(sourceID: locationId, in: animation))
+    }
 
-                            // Main Content
+    private var mainContent: some View {
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Top Header Image - Always shown for smooth transition
+                    HeaderImage(
+                        photos: photos,
+                        initialImageUrl: initialImageUrl,
+                        locationId: locationId,
+                        animation: animation
+                    ) {
+                        if !photos.isEmpty {
+                            selectedPhotoIndex = 0
+                        }
+                    }
+
+                    // Content Section
+                    Group {
+                        if isLoading && detail == nil {
+                            VStack {
+                                Spacer(minLength: 100)
+                                ProgressView()
+                                    .scaleEffect(1.2)
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                        } else {
                             VStack(alignment: .leading, spacing: 32) {
                                 TitleSection(detail: detail, distance: distance)
                                 PhotosSection(
@@ -60,55 +94,46 @@ struct DetailView: View {
                                 DetailsSection(detail: detail)
                             }
                             .padding(.vertical, 20)
-                            .padding(.bottom, 80) // Space for sticky button
+                            .padding(.bottom, 80)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                         }
                     }
-                    .edgesIgnoringSafeArea(.top)
+                    .animation(.easeInOut(duration: 0.6), value: isLoading)
                 }
             }
+            .edgesIgnoringSafeArea(.top)
             
             if !isLoading {
-                // Sticky Bottom Button
-                VStack {
-                    Spacer()
-                    Button(action: openMaps) {
-                        HStack {
-                            Image(systemName: "location.fill") // Using location arrow for directions
-                            Text("Get directions")
-                                .font(.custom("InstrumentSans-SemiBold", size: 16))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.black)
-                        .foregroundColor(.white)
-                        .cornerRadius(30)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 16)
-                }
+                stickyBottomButton
             }
         }
-        .task {
-            await loadData()
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                if !isLoading {
-                    TopRightActions(detail: detail)
+    }
+
+    private var stickyBottomButton: some View {
+        VStack {
+            Spacer()
+            Button(action: openMaps) {
+                HStack {
+                    Image(systemName: "location.fill") // Using location arrow for directions
+                    Text("Get directions")
+                        .font(.custom("InstrumentSans-SemiBold", size: 16))
                 }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(30)
             }
+            .padding(.horizontal)
+            .padding(.bottom, 16)
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .fullScreenCover(item: Binding(
+    }
+    
+    private var photoIdentifierBinding: Binding<PhotoIdentifier?> {
+        Binding(
             get: { selectedPhotoIndex.map { PhotoIdentifier(index: $0) } },
             set: { selectedPhotoIndex = $0?.index }
-        )) { ident in
-            PhotoGalleryView(
-                photos: photos,
-                locationName: detail?.name,
-                selectedPhotoIndex: $selectedPhotoIndex
-            )
-        }
+        )
     }
     
     struct PhotoIdentifier: Identifiable {
@@ -188,7 +213,8 @@ struct TopRightActions: View {
 }
 
 #Preview {
+    @Previewable @Namespace var anim
     NavigationStack {
-        DetailView(locationId: "3399541")
+        DetailView(locationId: "3399541", initialImageUrl: nil, animation: anim)
     }
 }

@@ -8,13 +8,14 @@ import SwiftUI
 extension ListView {
     struct PlaceRow: View {
         let location: LocationItem
+        let animation: Namespace.ID
         
         var body: some View {
             HStack(spacing: 16) {
                 // Square thumbnail
                 Group {
                     if let imageUrl = location.imageUrl, let url = URL(string: imageUrl) {
-                        AsyncImage(url: url) { image in
+                        CachedAsyncImage(url: url) { image in
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -27,6 +28,7 @@ extension ListView {
                 }
                 .frame(width: 80, height: 80)
                 .clipped()
+                .matchedTransitionSource(id: location.locationId, in: animation)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     let country = location.addressObj?.country ?? ""
@@ -96,6 +98,10 @@ extension ListView {
 }
 
 #Preview {
-    ListView.PlaceRow(location: LocationItem(locationId: "1", name: "Sample Place", addressObj: AddressObj(street1: nil, street2: nil, city: "Paris", state: nil, country: "France", postalcode: nil, addressString: nil), distance: "5.5", imageUrl: nil))
-        .padding()
+    @Previewable @Namespace var anim
+    ListView.PlaceRow(
+        location: LocationItem(locationId: "1", name: "Sample Place", addressObj: AddressObj(street1: nil, street2: nil, city: "Paris", state: nil, country: "France", postalcode: nil, addressString: nil), distance: "5.5", imageUrl: nil),
+        animation: anim
+    )
+    .padding()
 }

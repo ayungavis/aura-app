@@ -19,6 +19,8 @@ struct ListView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showFunFactAlert = false
+    @State private var isTransitioning = false
+    @Namespace private var animation
 
     // MARK: - Body
 
@@ -78,11 +80,24 @@ struct ListView: View {
                     }
                     .padding(.horizontal)
                 }
+                .scrollDisabled(isTransitioning)
             }
         }
         .overlay(FunFactAlert(showFunFactAlert: $showFunFactAlert))
         .task {
             await loadLocations()
+        }
+        .onAppear {
+            // Lock scrolling briefly ONLY when returning to the list
+            isTransitioning = true
+            Task {
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+                isTransitioning = false
+            }
+        }
+        .onDisappear {
+            // Safety net: ensure scroll is always unlocked when leaving the view
+            isTransitioning = false
         }
     }
 
@@ -98,10 +113,23 @@ struct ListView: View {
                     Text(error).foregroundColor(.red).font(.caption)
                 } else {
                     ForEach(locations) { location in
-                        NavigationLink(destination: DetailView(locationId: location.locationId, distance: location.distance)) {
-                            PlaceRow(location: location)
+                        NavigationLink(destination: DetailView(locationId: location.locationId, distance: location.distance, initialImageUrl: location.imageUrl, animation: animation)) {
+                            PlaceRow(location: location, animation: animation)
                         }
                         .buttonStyle(.plain)
+                        .simultaneousGesture(TapGesture().onEnded {
+                            // Lock scrolling immediately on tap
+                            isTransitioning = true
+                            
+                            // Safety Timeout: If navigation fails to trigger, unlock after 1.5s
+                            Task {
+                                try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s
+                                // Only reset if we haven't already navigated away
+                                if isTransitioning {
+                                    isTransitioning = false
+                                }
+                            }
+                        })
                     }
                 }
             }
@@ -144,7 +172,7 @@ struct ListView: View {
             let locationId = locations[index].locationId
             do {
                 if let firstPhoto = try await service.getLocationPhotos(locationId: locationId).first {
-                    locations[index].imageUrl = firstPhoto.images?.medium?.url
+                    locations[index].imageUrl = firstPhoto.images?.large?.url
                 }
             } catch {
                 print("📸 Error fetching photo for \(locationId): \(error)")
