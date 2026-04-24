@@ -10,49 +10,40 @@ import SwiftUI
 
 struct ListView: View {
 
-    // MARK: - Properties
     let category: String
-    private let service = TripAdvisorService()
+    @StateObject private var viewModel: ListViewModel
 
-    // MARK: - State
-    @State private var locations: [LocationItem] = []
-    @State private var isLoading = false
-    @State private var errorMessage: String?
-    @State private var showFunFactAlert = false
-
-    // MARK: - Body
+    init(category: String, service: TripAdvisorServiceProtocol = TripAdvisorService()) {
+        self.category = category
+        self._viewModel = StateObject(wrappedValue: ListViewModel(service: service))
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Background color
             Color(red: 250/255, green: 250/255, blue: 250/255).edgesIgnoringSafeArea(.all)
 
-            if isLoading {
+            if viewModel.isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     VStack(alignment: .center, spacing: 32) {
-                        
-                        // 1. Hero Activity Image
+
                         HeroSection(category: category)
                             .padding(.top, 40)
 
-                        // 2. Title & Metrics
                         VStack(spacing: 8) {
                             Text(category)
                                 .font(.custom("InstrumentSerif-Regular", size: 44))
                                 .multilineTextAlignment(.center)
-                            
+
                             MetricsRow()
                         }
 
-                        // 3. Fun Fact Card
                         FunFactSection(category: category, showFunFactAlert: $showFunFactAlert)
 
-                        // 4. Recommended Places
                         placesSection
-                        
+
                         Spacer(minLength: 40)
                     }
                     .padding(.horizontal)
@@ -61,9 +52,13 @@ struct ListView: View {
         }
         .overlay(FunFactAlert(showFunFactAlert: $showFunFactAlert))
         .task {
-            await loadLocations()
+            await viewModel.loadLocations(category: category)
         }
     }
+
+    // MARK: - Private State
+
+    @State private var showFunFactAlert = false
 
     // MARK: - Sub-Sections
 
@@ -71,12 +66,18 @@ struct ListView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Recommended places")
                 .font(.custom("InstrumentSerif-Regular", size: 28))
-            
+
             VStack(spacing: 8) {
-                if let error = errorMessage {
-                    Text(error).foregroundColor(.red).font(.caption)
+                if let error = viewModel.errorMessage {
+                    VStack(spacing: 12) {
+                        Text(error).foregroundColor(.red).font(.caption)
+                        Button("Retry") {
+                            Task { await viewModel.loadLocations(category: category) }
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 } else {
-                    ForEach(locations) { location in
+                    ForEach(viewModel.locations) { location in
                         NavigationLink(destination: DetailView(locationId: location.locationId, distance: location.distance)) {
                             PlaceRow(location: location)
                         }
@@ -86,49 +87,6 @@ struct ListView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    // MARK: - Load Data
-
-    private func loadLocations() async {
-        isLoading = true
-        errorMessage = nil
-
-        do {
-            let fetchedLocations = try await service.searchLocations(
-                query: category + " Bali",
-                latLong: "-8.717,115.174", // Kuta, Bali
-                category: "attractions"
-            )
-            
-            // Sort by distance (nearest first)
-            // If distance is missing, place at the end
-            self.locations = fetchedLocations.sorted {
-                let d1 = Double($0.distance ?? "") ?? Double.infinity
-                let d2 = Double($1.distance ?? "") ?? Double.infinity
-                return d1 < d2
-            }
-            
-            isLoading = false
-            await fetchImagesForLocations()
-        } catch {
-            errorMessage = "Failed to load places."
-            print("Search error: \(error)")
-            isLoading = false
-        }
-    }
-
-    private func fetchImagesForLocations() async {
-        for index in locations.indices {
-            let locationId = locations[index].locationId
-            do {
-                if let firstPhoto = try await service.getLocationPhotos(locationId: locationId).first {
-                    locations[index].imageUrl = firstPhoto.images?.medium?.url
-                }
-            } catch {
-                print("📸 Error fetching photo for \(locationId): \(error)")
-            }
-        }
     }
 }
 

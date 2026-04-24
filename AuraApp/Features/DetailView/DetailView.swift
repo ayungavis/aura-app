@@ -4,28 +4,27 @@
 //
 //  Created by Muhammad Nurul Akbar on 16/04/26.
 //
-//  UPDATED: Now receives a `locationId` and fetches real data
-//  from TripAdvisor (details, photos, reviews) using async/await.
-//
 
 import SwiftUI
 
 struct DetailView: View {
 
-    // MARK: - Input
     let locationId: String
     var distance: String? = nil
 
-    // MARK: - Service
-    private let service = TripAdvisorService()
-
-    // MARK: - State
     @State private var detail: LocationDetail?
     @State private var photos: [LocationPhoto] = []
     @State private var reviews: [LocationReview] = []
     @State private var isLoading = true
+    @State private var errorMessage: String?
 
-    // MARK: - Body
+    private let service: TripAdvisorServiceProtocol
+
+    init(locationId: String, distance: String? = nil, service: TripAdvisorServiceProtocol = TripAdvisorService()) {
+        self.locationId = locationId
+        self.distance = distance
+        self.service = service
+    }
 
     var body: some View {
         ZStack {
@@ -34,13 +33,28 @@ struct DetailView: View {
                     Spacer()
                     ProgressView("Loading...")
                     Spacer()
+                } else if let error = errorMessage {
+                    Spacer()
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text(error)
+                            .font(.custom("InstrumentSans-Regular", size: 14))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                        Button("Retry") {
+                            Task { await loadData() }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    Spacer()
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 0) {
-                            // Top Header Image
                             HeaderImage(photos: photos)
 
-                            // Main Content
                             VStack(alignment: .leading, spacing: 32) {
                                 TitleSection(detail: detail, distance: distance)
                                 PhotosSection(photos: photos, photoCount: detail?.photoCount, webUrl: detail?.webUrl)
@@ -48,20 +62,19 @@ struct DetailView: View {
                                 DetailsSection(detail: detail)
                             }
                             .padding(.vertical, 20)
-                            .padding(.bottom, 80) // Space for sticky button
+                            .padding(.bottom, 80)
                         }
                     }
                     .edgesIgnoringSafeArea(.top)
                 }
             }
-            
-            if !isLoading {
-                // Sticky Bottom Button
+
+            if !isLoading && errorMessage == nil {
                 VStack {
                     Spacer()
                     Button(action: openMaps) {
                         HStack {
-                            Image(systemName: "location.fill") // Using location arrow for directions
+                            Image(systemName: "location.fill")
                             Text("Get directions")
                                 .font(.custom("InstrumentSans-SemiBold", size: 16))
                         }
@@ -81,7 +94,7 @@ struct DetailView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                if !isLoading {
+                if !isLoading && errorMessage == nil {
                     TopRightActions(detail: detail, openMapsAction: openMaps)
                 }
             }
@@ -89,39 +102,42 @@ struct DetailView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
     }
 
-    // MARK: - Load Data
-
     private func loadData() async {
         isLoading = true
+        errorMessage = nil
 
         do {
             detail = try await service.getLocationDetails(locationId: locationId)
         } catch {
-            print("Error loading detail: \(error)")
+            AppLogger.networkError("details_\(locationId)", error: error)
         }
 
         do {
             photos = try await service.getLocationPhotos(locationId: locationId)
         } catch {
-            print("Error loading photos: \(error)")
+            AppLogger.networkError("photos_\(locationId)", error: error)
         }
 
         do {
             reviews = try await service.getLocationReviews(locationId: locationId)
         } catch {
-            print("Error loading reviews: \(error)")
+            AppLogger.networkError("reviews_\(locationId)", error: error)
+        }
+
+        if detail == nil && photos.isEmpty && reviews.isEmpty {
+            errorMessage = "Failed to load place details."
         }
 
         isLoading = false
     }
-    
+
     private func openMaps() {
         let name = detail?.name ?? ""
         let address = detail?.addressObj?.addressString ?? ""
         let query = [name, address].filter { !$0.isEmpty }.joined(separator: ", ")
-        
+
         if let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           let url = URL(string: "http://maps.apple.com/?q=\(encoded)") {
+           let url = URL(string: "https://maps.apple.com/?q=\(encoded)") {
             UIApplication.shared.open(url)
         }
     }
@@ -130,7 +146,7 @@ struct DetailView: View {
 struct TopRightActions: View {
     let detail: LocationDetail?
     let openMapsAction: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 20) {
             Button(action: openMapsAction) {
@@ -138,7 +154,7 @@ struct TopRightActions: View {
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.black)
             }
-            
+
             Menu {
                 if let phone = detail?.phone, !phone.isEmpty {
                     let cleanPhone = phone.filter { "0123456789+".contains($0) }
@@ -148,13 +164,13 @@ struct TopRightActions: View {
                         }
                     }
                 }
-                
+
                 if let website = detail?.website, !website.isEmpty, let url = URL(string: website) {
                     Link(destination: url) {
                         Label("Open website", systemImage: "globe")
                     }
                 }
-                
+
                 if let webUrl = detail?.webUrl, !webUrl.isEmpty, let url = URL(string: webUrl) {
                     ShareLink(item: url) {
                         Label("Share", systemImage: "square.and.arrow.up")
@@ -164,7 +180,7 @@ struct TopRightActions: View {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.black)
-                    .contentShape(Rectangle()) // Ensures tap area is correct
+                    .contentShape(Rectangle())
             }
         }
         .padding(.horizontal, 20)
