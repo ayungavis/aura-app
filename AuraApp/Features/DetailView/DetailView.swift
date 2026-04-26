@@ -4,76 +4,77 @@
 //
 //  Created by Muhammad Nurul Akbar on 16/04/26.
 //
-//  UPDATED: Now receives a `locationId` and fetches real data
-//  from TripAdvisor (details, photos, reviews) using async/await.
+//  MVVM: View renders state from DetailViewModel. All business logic
+//  (fetching, maps, retry) lives in the ViewModel.
 //
 
 import SwiftUI
 
 struct DetailView: View {
-  // MARK: - Input
-
-  let locationId: String
-  var distance: String? = nil
-  let initialImageUrl: String?
-  let animation: Namespace.ID
-  
-  // MARK: - Service
-
-  private let service = TripAdvisorService()
-  
   // MARK: - State
 
-  @State private var detail: LocationDetail?
-  @State private var photos: [LocationPhoto] = []
-  @State private var reviews: [LocationReview] = []
-  @State private var isLoading = true
+  @StateObject private var viewModel: DetailViewModel
   @State private var selectedPhotoIndex: Int? = nil
-  
+  let animation: Namespace.ID
+
+  init(
+    locationId: String,
+    distance: String? = nil,
+    initialImageUrl: String?,
+    animation: Namespace.ID
+  ) {
+    _viewModel = StateObject(wrappedValue: DetailViewModel(
+      locationId: locationId,
+      distance: distance,
+      initialImageUrl: initialImageUrl
+    ))
+    self.animation = animation
+  }
+
   // MARK: - Body
-  
+
   var body: some View {
     mainContent
       .task {
-        await loadData()
+        viewModel.onAppear()
       }
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
-          if !isLoading {
-            TopRightActions(detail: detail)
+          if !viewModel.isLoading {
+            TopRightActions(detail: viewModel.detail)
           }
         }
       }
       .toolbarBackground(.hidden, for: .navigationBar)
       .fullScreenCover(item: photoIdentifierBinding) { _ in
         PhotoGalleryView(
-          photos: photos,
-          locationName: detail?.name,
+          photos: viewModel.photos,
+          locationName: viewModel.detail?.name,
           selectedPhotoIndex: $selectedPhotoIndex
         )
       }
-      .navigationTransition(.zoom(sourceID: locationId, in: animation))
+      .navigationTransition(.zoom(sourceID: viewModel.locationId, in: animation))
   }
-  
+
   private var mainContent: some View {
     ZStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
           // Top Header Image - Always shown for smooth transition
           HeaderImage(
-            photos: photos,
-            initialImageUrl: initialImageUrl,
-            locationId: locationId,
+            photos: viewModel.photos,
+            initialImageUrl: viewModel.initialImageUrl,
+            locationId: viewModel.locationId,
             animation: animation
           ) {
-            if !photos.isEmpty {
+            if !viewModel.photos.isEmpty {
               selectedPhotoIndex = 0
             }
           }
-          
+
           // Content Section
           Group {
-            if isLoading && detail == nil {
+            if viewModel.isLoading && viewModel.detail == nil {
               VStack {
                 Spacer(minLength: 100)
                 ProgressView()
@@ -81,42 +82,70 @@ struct DetailView: View {
                 Spacer()
               }
               .frame(maxWidth: .infinity)
+            } else if let error = viewModel.error, viewModel.detail == nil {
+              detailErrorView(error)
             } else {
               VStack(alignment: .leading, spacing: 32) {
-                TitleSection(detail: detail, distance: distance)
+                TitleSection(detail: viewModel.detail, distance: viewModel.distance)
                 PhotosSection(
-                  photos: photos,
-                  photoCount: detail?.photoCount,
-                  webUrl: detail?.webUrl,
+                  photos: viewModel.photos,
+                  photoCount: viewModel.detail?.photoCount,
+                  webUrl: viewModel.detail?.webUrl,
                   onPhotoTap: { index in
                     selectedPhotoIndex = index
                   }
                 )
-                ReviewsSection(reviews: reviews, numReviews: detail?.numReviews, webUrl: detail?.webUrl)
-                DetailsSection(detail: detail)
+                ReviewsSection(reviews: viewModel.reviews, numReviews: viewModel.detail?.numReviews, webUrl: viewModel.detail?.webUrl)
+                DetailsSection(detail: viewModel.detail)
               }
               .padding(.vertical, 20)
               .padding(.bottom, 80)
               .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
           }
-          .animation(.easeInOut(duration: 0.6), value: isLoading)
+          .animation(.easeInOut(duration: 0.6), value: viewModel.isLoading)
         }
       }
       .edgesIgnoringSafeArea(.top)
-      
-      if !isLoading {
+
+      if !viewModel.isLoading && viewModel.detail != nil {
         stickyBottomButton
       }
     }
   }
-  
+
+  // MARK: - Error View
+
+  private func detailErrorView(_ error: Error) -> some View {
+    VStack(spacing: 16) {
+      Spacer()
+      Image(systemName: "exclamationmark.triangle.fill")
+        .font(.system(size: 48))
+        .foregroundStyle(.secondary)
+      Text("Unable to load details")
+        .font(.custom("InstrumentSans-Medium", size: 18))
+      Text(error.localizedDescription)
+        .font(.custom("InstrumentSans-Regular", size: 14))
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 32)
+      Button("Try Again") {
+        viewModel.retry()
+      }
+      .buttonStyle(.bordered)
+      Spacer()
+    }
+    .frame(maxWidth: .infinity)
+  }
+
+  // MARK: - Sub-Views
+
   private var stickyBottomButton: some View {
     VStack {
       Spacer()
-      Button(action: openMaps) {
+      Button(action: viewModel.openMaps) {
         HStack {
-          Image(systemName: "location.fill") // Using location arrow for directions
+          Image(systemName: "location.fill")
           Text("Get directions")
             .font(.custom("InstrumentSans-SemiBold", size: 16))
         }
@@ -130,63 +159,25 @@ struct DetailView: View {
       .padding(.bottom, 16)
     }
   }
-  
+
   private var photoIdentifierBinding: Binding<PhotoIdentifier?> {
     Binding(
       get: { selectedPhotoIndex.map { PhotoIdentifier(index: $0) } },
       set: { selectedPhotoIndex = $0?.index }
     )
   }
-  
+
   struct PhotoIdentifier: Identifiable {
     let index: Int
     var id: Int {
       index
     }
   }
-  
-  // MARK: - Load Data
-  
-  private func loadData() async {
-    isLoading = true
-    
-    do {
-      detail = try await service.getLocationDetails(locationId: locationId)
-    } catch {
-      print("Error loading detail: \(error)")
-    }
-    
-    do {
-      photos = try await service.getLocationPhotos(locationId: locationId)
-    } catch {
-      print("Error loading photos: \(error)")
-    }
-    
-    do {
-      reviews = try await service.getLocationReviews(locationId: locationId)
-    } catch {
-      print("Error loading reviews: \(error)")
-    }
-    
-    isLoading = false
-  }
-  
-  private func openMaps() {
-    let name = detail?.name ?? ""
-    let address = detail?.addressObj?.addressString ?? ""
-    let query = [name, address].filter { !$0.isEmpty }.joined(separator: ", ")
-    
-    if let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-       let url = URL(string: "http://maps.apple.com/?q=\(encoded)")
-    {
-      UIApplication.shared.open(url)
-    }
-  }
 }
 
 struct TopRightActions: View {
   let detail: LocationDetail?
-  
+
   var body: some View {
     Menu {
       if let phone = detail?.phone, !phone.isEmpty {
@@ -197,13 +188,13 @@ struct TopRightActions: View {
           }
         }
       }
-      
+
       if let website = detail?.website, !website.isEmpty, let url = URL(string: website) {
         Link(destination: url) {
           Label("Open website", systemImage: "globe")
         }
       }
-      
+
       if let webUrl = detail?.webUrl, !webUrl.isEmpty, let url = URL(string: webUrl) {
         ShareLink(item: url) {
           Label("Share", systemImage: "square.and.arrow.up")

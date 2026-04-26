@@ -21,7 +21,6 @@ class TripAdvisorService: TripAdvisorServiceProtocol {
       AppLogger.cacheHit(cacheKey)
       return cachedData
     }
-    print("API KEY: \(AppConfig.tripAdvisorAPIKey)")
     var components = URLComponents(string: "\(baseURL)/location/search")!
     var queryItems = [
       URLQueryItem(name: "key", value: AppConfig.tripAdvisorAPIKey),
