@@ -60,7 +60,7 @@ class CurrentWeatherViewModel: ObservableObject {
     do {
       let weather = try await weatherService.fetchWeatherData(for: location)
       currentWeather = weather.current
-      hourlyForecast = weather.hourly.map { hour in
+      hourlyForecast = weather.hourly.filter { $0.date > Date() }.map { hour in
         Forecast(
           time: hour.date.formatted(.dateTime.hour()),
           systemImage: hour.condition.systemImageName(isDay: weather.current.isDay),
