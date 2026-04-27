@@ -14,6 +14,8 @@ struct CurrentWeatherView: View {
   // @StateObject = this View creates and owns the ViewModel.
   // SwiftUI keeps it alive across re-renders (unlike @ObservedObject).
   @StateObject private var viewModel = CurrentWeatherViewModel()
+  let navigationNamespace: Namespace.ID
+  @State private var isTransitioning = false
 
   var body: some View {
     Group {
@@ -29,6 +31,17 @@ struct CurrentWeatherView: View {
     }
     .onAppear {
       viewModel.onAppear()
+      
+      // Lock scrolling briefly ONLY when returning to the home screen
+      isTransitioning = true
+      Task {
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+        isTransitioning = false
+      }
+    }
+    .onDisappear {
+      // Safety net: ensure scroll is always unlocked when leaving the view
+      isTransitioning = false
     }
   }
 
@@ -57,14 +70,21 @@ struct CurrentWeatherView: View {
           HourlyForecast(forecasts: viewModel.hourlyForecast.isEmpty ? HOURLY_FORECAST_DATA : viewModel.hourlyForecast)
 
           // AI-powered activity recommendations based on weather
-          RecommendedActivities(activities: viewModel.activities.isEmpty ? RECOMMENDED_ACTIVITIES : viewModel.activities)
+          RecommendedActivities(
+            navigationNamespace: navigationNamespace,
+            activities: viewModel.activities.isEmpty ? RECOMMENDED_ACTIVITIES : viewModel.activities
+          )
 
           // AI-powered food recommendations based on weather
-          RecommendedFoods(foods: viewModel.foods.isEmpty ? RECOMMENDED_FOODS : viewModel.foods)
+          RecommendedFoods(
+            navigationNamespace: navigationNamespace,
+            foods: viewModel.foods.isEmpty ? RECOMMENDED_FOODS : viewModel.foods
+          )
 
           Spacer().frame(height: 20)
         }
       }
+      .scrollDisabled(isTransitioning)
     }
     .ignoresSafeArea()
   }
@@ -93,5 +113,6 @@ struct CurrentWeatherView: View {
 }
 
 #Preview {
-  CurrentWeatherView()
+  @Previewable @Namespace var anim
+  CurrentWeatherView(navigationNamespace: anim)
 }

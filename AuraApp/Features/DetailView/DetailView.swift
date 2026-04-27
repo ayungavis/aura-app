@@ -73,17 +73,35 @@ struct DetailView: View {
           }
 
           // Content Section
-          Group {
+          ZStack {
             if viewModel.isLoading && viewModel.detail == nil {
-              VStack {
-                Spacer(minLength: 100)
-                ProgressView()
-                  .scaleEffect(1.2)
-                Spacer()
+              VStack(alignment: .leading, spacing: 32) {
+                // Title Skeleton
+                VStack(alignment: .leading, spacing: 12) {
+                    SkeletonView().frame(height: 32).frame(maxWidth: .infinity)
+                    SkeletonView().frame(height: 18).frame(width: 120)
+                }
+                
+                // Photos Skeleton
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(0..<3) { _ in
+                            SkeletonView().frame(width: 150, height: 200)
+                        }
+                    }
+                }
+                
+                // Reviews Skeleton
+                VStack(alignment: .leading, spacing: 12) {
+                    SkeletonView().frame(height: 24).frame(width: 150)
+                    SkeletonView().frame(height: 100).frame(maxWidth: .infinity)
+                }
               }
-              .frame(maxWidth: .infinity)
+              .padding(.horizontal, 20)
+              .transition(.opacity)
             } else if let error = viewModel.error, viewModel.detail == nil {
               detailErrorView(error)
+                .transition(.opacity)
             } else {
               VStack(alignment: .leading, spacing: 32) {
                 TitleSection(detail: viewModel.detail, distance: viewModel.distance)
@@ -100,10 +118,10 @@ struct DetailView: View {
               }
               .padding(.vertical, 20)
               .padding(.bottom, 80)
-              .transition(.opacity.combined(with: .move(edge: .bottom)))
+              .transition(.opacity)
             }
           }
-          .animation(.easeInOut(duration: 0.6), value: viewModel.isLoading)
+          .animation(.easeInOut(duration: 0.4), value: viewModel.isLoading)
         }
       }
       .edgesIgnoringSafeArea(.top)

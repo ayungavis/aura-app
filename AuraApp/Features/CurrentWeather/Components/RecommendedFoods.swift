@@ -10,6 +10,7 @@ import SwiftUI
 
 struct RecommendedFoods: View {
   @Environment(AppRouter.self) private var router
+  let navigationNamespace: Namespace.ID
 
   /// Food recommendations from the ViewModel.
   let foods: [Food]
@@ -28,11 +29,17 @@ struct RecommendedFoods: View {
               imageURL: item.imageURL,
               generatedImage: item.generatedImage
             )
+            .matchedTransitionSource(id: item.title, in: navigationNamespace)
             .fixedSize()
             .padding(.leading, foods.first?.id == item.id ? 20 : 0)
             .padding(.trailing, foods.last?.id == item.id ? 20 : 0)
             .onTapGesture {
-              router.navigate(to: .list(category: item.title))
+              router.navigate(to: .list(
+                category: item.title,
+                imageURL: item.imageURL,
+                imageData: item.generatedImage?.pngData(),
+                imageName: item.imageName
+              ))
             }
           }
         }
@@ -42,5 +49,6 @@ struct RecommendedFoods: View {
 }
 
 #Preview {
-  RecommendedFoods(foods: [])
+  @Previewable @Namespace var anim
+  RecommendedFoods(navigationNamespace: anim, foods: [])
 }

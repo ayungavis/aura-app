@@ -12,6 +12,10 @@ struct ListView: View {
   // MARK: - Properties
 
   let category: String
+  let initialImage: UIImage?
+  let imageURL: URL?
+  let imageName: String?
+  let navigationNamespace: Namespace.ID
 
   // MARK: - State
 
@@ -20,8 +24,12 @@ struct ListView: View {
   @State private var isTransitioning = false
   @Namespace private var animation
 
-  init(category: String) {
+  init(category: String, initialImage: UIImage? = nil, imageURL: URL? = nil, imageName: String? = nil, navigationNamespace: Namespace.ID) {
     self.category = category
+    self.initialImage = initialImage
+    self.imageURL = imageURL
+    self.imageName = imageName
+    self.navigationNamespace = navigationNamespace
     _viewModel = StateObject(wrappedValue: ListViewModel(category: category))
   }
 
@@ -53,39 +61,61 @@ struct ListView: View {
       .ignoresSafeArea()
       .allowsHitTesting(false)
 
-      if viewModel.isLoading && viewModel.locations.isEmpty {
-        ProgressView()
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else if let error = viewModel.error, viewModel.locations.isEmpty {
-        listErrorView(error)
-      } else {
-        ScrollView {
-          VStack(alignment: .center, spacing: 32) {
-            // 1. Hero Activity Image
-            HeroSection(category: category)
-              .padding(.top, 40)
+      ScrollView {
+        VStack(alignment: .center, spacing: 32) {
+          // 1. Hero Activity Image
+          HeroSection(category: category, initialImage: initialImage, imageURL: imageURL, imageName: imageName)
+            .padding(.top, 40)
 
-            // 2. Title & Metrics
-            VStack(spacing: 8) {
-              Text(category)
-                .font(.custom("InstrumentSerif-Regular", size: 44))
-                .multilineTextAlignment(.center)
+          // 2. Title
+          Text(category)
+            .font(.custom("InstrumentSerif-Regular", size: 44))
+            .multilineTextAlignment(.center)
 
-              MetricsRow()
+          // Content Section
+          ZStack {
+            if viewModel.isLoading && viewModel.locations.isEmpty {
+              VStack(alignment: .center, spacing: 32) {
+                // Metrics Skeleton
+                HStack(spacing: 24) {
+                    ForEach(0..<3) { _ in
+                        SkeletonView()
+                            .frame(width: 60, height: 20)
+                    }
+                }
+                
+                // Fun Fact Skeleton
+                SkeletonView()
+                    .frame(height: 100)
+                    .frame(maxWidth: .infinity)
+                
+                // Places Skeleton
+                VStack(spacing: 20) {
+                    ForEach(0..<3) { _ in
+                        SkeletonRow()
+                    }
+                }
+              }
+              .transition(.opacity)
+            } else if let error = viewModel.error, viewModel.locations.isEmpty {
+              listErrorView(error)
+                .transition(.opacity)
+            } else {
+              VStack(alignment: .center, spacing: 32) {
+                MetricsRow()
+                FunFactSection(category: category, showFunFactAlert: $showFunFactAlert)
+                placesSection
+              }
+              .transition(.opacity)
             }
-
-            // 3. Fun Fact Card
-            FunFactSection(category: category, showFunFactAlert: $showFunFactAlert)
-
-            // 4. Recommended Places
-            placesSection
-
-            Spacer(minLength: 40)
           }
-          .padding(.horizontal)
+          .animation(.easeInOut(duration: 0.4), value: viewModel.isLoading)
+
+          Spacer(minLength: 40)
         }
-        .scrollDisabled(isTransitioning)
+        .padding(.horizontal)
       }
+      .scrollDisabled(isTransitioning)
     }
     .overlay(FunFactAlert(showFunFactAlert: $showFunFactAlert))
     .task {
@@ -103,6 +133,7 @@ struct ListView: View {
       // Safety net: ensure scroll is always unlocked when leaving the view
       isTransitioning = false
     }
+    .navigationTransition(.zoom(sourceID: category, in: navigationNamespace))
   }
 
   // MARK: - Error View
@@ -163,7 +194,8 @@ struct ListView: View {
 }
 
 #Preview {
+  @Previewable @Namespace var anim
   NavigationStack {
-    ListView(category: "Running")
+    ListView(category: "Running", navigationNamespace: anim)
   }
 }

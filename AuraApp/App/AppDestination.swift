@@ -8,5 +8,5 @@
 import Foundation
 
 enum AppDestination: Hashable {
-  case list(category: String)
+  case list(category: String, imageURL: URL? = nil, imageData: Data? = nil, imageName: String? = nil)
 }
