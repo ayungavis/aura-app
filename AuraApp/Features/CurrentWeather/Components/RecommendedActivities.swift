@@ -2,7 +2,8 @@
 //  RecommendedActivities.swift
 //  AuraApp
 //
-//  Created by Wahyu Kurniawan on 22/04/26.
+//  Horizontal scrollable list of activity recommendation cards.
+//  Now accepts dynamic data from the ViewModel instead of hardcoded mock data.
 //
 
 import SwiftUI
@@ -10,20 +11,28 @@ import SwiftUI
 struct RecommendedActivities: View {
   @Environment(AppRouter.self) private var router
 
+  /// Activity recommendations from the ViewModel.
+  /// Can be AI-generated or rule-based fallback — this view doesn't care which.
+  let activities: [Activity]
+
   var body: some View {
     Layout(direction: .vertical, spacing: 16) {
       SectionHeader(title: "Recommended Activities").padding(.horizontal, 20)
 
       ScrollView(.horizontal, showsIndicators: false) {
         Layout(direction: .horizontal, spacing: 12) {
-          ForEach(Array(RECOMMENDED_ACTIVITIES.enumerated()), id: \.element.id) { index, item in
-            ActivityItem(activity: item)
-              .fixedSize()
-              .padding(.leading, index == 0 ? 20 : 0)
-              .padding(.trailing, index == RECOMMENDED_ACTIVITIES.count - 1 ? 20 : 0)
-              .onTapGesture {
-                router.navigate(to: .list(category: item.title))
-              }
+          ForEach(activities) { item in
+            ActivityItem(
+              title: item.title,
+              subtitle: item.subtitle,
+              systemImageName: item.imageName
+            )
+            .fixedSize()
+            .padding(.leading, activities.first?.id == item.id ? 20 : 0)
+            .padding(.trailing, activities.last?.id == item.id ? 20 : 0)
+            .onTapGesture {
+              router.navigate(to: .list(category: item.title))
+            }
           }
         }
       }
@@ -32,5 +41,5 @@ struct RecommendedActivities: View {
 }
 
 #Preview {
-  RecommendedActivities()
+  RecommendedActivities(activities: [])
 }
