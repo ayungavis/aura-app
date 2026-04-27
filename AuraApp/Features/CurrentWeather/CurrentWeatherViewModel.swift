@@ -94,10 +94,19 @@ class CurrentWeatherViewModel: ObservableObject {
       // Step 2: Update current weather state
       currentWeather = weather.current
 
-      // Step 3: Build hourly forecast — filter out past hours, map to display models
-      hourlyForecast = weather.hourly.filter { $0.date > Date() }.map { hour in
+      // Step 3: Build hourly forecast — include current hour, label it "Now"
+      let now = Date()
+      let timezone = TimeZone(secondsFromGMT: weather.timezoneOffset) ?? .current
+      var calendar = Calendar.current
+      calendar.timeZone = timezone
+      let startOfHour = calendar.date(from: calendar.dateComponents([.year, .month, .day, .hour], from: now))!
+      
+      var hourStyle = Date.FormatStyle.dateTime.hour()
+      hourStyle.timeZone = timezone
+      
+      hourlyForecast = weather.hourly.filter { $0.date >= startOfHour }.enumerated().map { index, hour in
         Forecast(
-          time: hour.date.formatted(.dateTime.hour()),
+          time: index == 0 ? "Now" : hour.date.formatted(hourStyle),
           systemImage: hour.condition.systemImageName(isDay: weather.current.isDay),
           temperature: "\(Int(hour.temperature.rounded()))°",
           caption: nil
