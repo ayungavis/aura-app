@@ -1,6 +1,8 @@
 # Aura
 
-[Repository](https://github.com/ayungavis/aura-app)
+![AuraApp Banner](banner.png)
+
+⚙️ [Repository](https://github.com/ayungavis/aura-app)
 
 A weather activity recommendation app built with SwiftUI. Shows current weather, hourly forecasts, and suggests activities and food based on real-time conditions — powered by on-device Apple Intelligence when available.
 
