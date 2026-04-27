@@ -108,6 +108,7 @@ struct CurrentWeatherData: Codable {
   let windDirection: Double?
   let condition: WeatherCondition
   let isDay: Bool
+  let localTime: String?
 }
 
 struct HourlyWeatherData: Codable {

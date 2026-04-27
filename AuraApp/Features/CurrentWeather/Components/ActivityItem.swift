@@ -15,6 +15,7 @@ struct ActivityItem: View {
   let systemImageName: String
   var imageURL: URL? = nil
   var generatedImage: UIImage? = nil
+  var isGenerationFailed: Bool = false
 
   var body: some View {
     ZStack {
@@ -25,11 +26,20 @@ struct ActivityItem: View {
         VStack(spacing: 8) {
           if generatedImage == nil {
             HStack(spacing: 4) {
-              ProgressView()
-                .scaleEffect(0.6)
-              Text("Generating...")
-                .font(.custom("InstrumentSans-Regular", size: 8))
-                .foregroundStyle(.black.opacity(0.3))
+              if !isGenerationFailed {
+                ProgressView()
+                  .scaleEffect(0.6)
+                Text("Generating...")
+                  .font(.custom("InstrumentSans-Regular", size: 8))
+                  .foregroundStyle(.black.opacity(0.3))
+              } else {
+                Image(systemName: "exclamationmark.triangle")
+                  .font(.system(size: 8))
+                  .foregroundStyle(.black.opacity(0.2))
+                Text("Generation Failed")
+                  .font(.custom("InstrumentSans-Regular", size: 8))
+                  .foregroundStyle(.black.opacity(0.2))
+              }
             }
           }
 

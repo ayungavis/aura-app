@@ -168,12 +168,24 @@ class CurrentWeatherViewModel: ObservableObject {
         let activity = activities[index]
         guard let prompt = activity.imagePrompt, activity.generatedImage == nil else { continue }
         
+        print("🖼️ [ImageGen] Generating Activity[\(index)] '\(activity.title)' with prompt: \"\(prompt)\"")
+        
         if let image = await ImagePlaygroundManager.generateImage(prompt: prompt) {
           if !Task.isCancelled {
             await MainActor.run {
               if index < self.activities.count {
                 self.activities[index].generatedImage = image
                 print("🖼️ [ImageGen] Activity[\(index)] '\(self.activities[index].title)' image updated!")
+              }
+            }
+          }
+        } else {
+          // If generation failed after retries
+          if !Task.isCancelled {
+            await MainActor.run {
+              if index < self.activities.count {
+                self.activities[index].isGenerationFailed = true
+                print("🖼️ [ImageGen] Activity[\(index)] '\(self.activities[index].title)' generation failed permanently.")
               }
             }
           }
@@ -187,12 +199,24 @@ class CurrentWeatherViewModel: ObservableObject {
         let food = foods[index]
         guard let prompt = food.imagePrompt, food.generatedImage == nil else { continue }
         
+        print("🖼️ [ImageGen] Generating Food[\(index)] '\(food.title)' with prompt: \"\(prompt)\"")
+        
         if let image = await ImagePlaygroundManager.generateImage(prompt: prompt) {
           if !Task.isCancelled {
             await MainActor.run {
               if index < self.foods.count {
                 self.foods[index].generatedImage = image
                 print("🖼️ [ImageGen] Food[\(index)] '\(self.foods[index].title)' image updated!")
+              }
+            }
+          }
+        } else {
+          // If generation failed after retries
+          if !Task.isCancelled {
+            await MainActor.run {
+              if index < self.foods.count {
+                self.foods[index].isGenerationFailed = true
+                print("🖼️ [ImageGen] Food[\(index)] '\(self.foods[index].title)' generation failed permanently.")
               }
             }
           }

@@ -27,7 +27,8 @@ struct RecommendedFoods: View {
               subtitle: item.subtitle,
               systemImageName: item.imageName,
               imageURL: item.imageURL,
-              generatedImage: item.generatedImage
+              generatedImage: item.generatedImage,
+              isGenerationFailed: item.isGenerationFailed
             )
             .matchedTransitionSource(id: item.title, in: navigationNamespace)
             .fixedSize()

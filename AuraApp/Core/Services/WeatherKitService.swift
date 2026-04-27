@@ -25,7 +25,13 @@ class WeatherKitService: WeatherServiceProtocol {
       windSpeed: weather.currentWeather.wind.speed.value,
       windDirection: weather.currentWeather.wind.direction.value,
       condition: Self.mapCondition(weather.currentWeather.condition),
-      isDay: weather.currentWeather.isDaylight
+      isDay: weather.currentWeather.isDaylight,
+      localTime: {
+        let formatter = DateFormatter()
+        formatter.timeZone = .current
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: Date())
+      }()
     )
 
     let hourly: [HourlyWeatherData] = weather.hourlyForecast.forecast.prefix(24).map { hour in

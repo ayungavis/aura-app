@@ -20,4 +20,7 @@ struct Food: CardItem {
 
   /// The generated image loaded from Image Playground, stored in memory.
   var generatedImage: UIImage? = nil
+
+  /// Whether image generation failed after retries.
+  var isGenerationFailed: Bool = false
 }

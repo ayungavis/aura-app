@@ -31,17 +31,29 @@ class AIRecommendationService: RecommendationServiceProtocol {
     let weatherDescription = buildWeatherDescription(weather)
 
     let session = LanguageModelSession(instructions: """
-    You are a weather-aware activity advisor. Given the current weather conditions, \
-    suggest exactly 5 activities that would be appropriate. \
-    Keep names and subtitles short — 1-3 words each. \
+    You are a weather-aware activity advisor for users in Bali, Indonesia. Given the current weather conditions, \
+    suggest exactly 5 activities that would be appropriate for the weather, time, and Balinese context. \
+    Ensure the activities are diverse and cover Balinese categories (e.g., Beach Clubs, Spas, \
+    Rice Terraces, Surfing, Yoga, Night Markets, or Temples). Avoid suggesting visually \
+    similar activities. \
+    Keep the title of activity to 1-2 words max and it should be common activities that can match tripadvisor \
+    places category and for subtitle also keep it short — 1-3 words each. \
     For each item, provide a detailed 'imagePrompt' that describes a realistic, \
-    high-fidelity photo of the activity. Do not include any people or human figures. \
-    Focus on equipment, environment, and atmosphere. Do not use words like 'cartoon' or 'drawing'.
+    high-fidelity still-life or landscape photo in Bali. Focus on **objects, equipment, and empty scenery** \
+    to avoid any implication of people (e.g., instead of 'surfing', describe 'a surfboard leaning against a palm tree \
+    on a sandy beach'). Focus on Balinese aesthetics: tropical greenery, bamboo architecture, \
+    stone carvings, or coastal vibes. Do not include any people or human figures. \ 
+    Focus on the atmosphere that matches the current condition and time of day. \ 
+    If the local time is after sunset, ensure the 'imagePrompt' explicitly requests a night vibe with warm \
+    ambient lighting, lanterns, or moonlight. If it is daytime, emphasize tropical sunlight. \
+    Do not use verb words or any words that imply human action. Focus on **still objects**.
     """)
 
+    print("🤖 [AIRecommendation] Fetching activities with description: \"\(weatherDescription)\"")
+    
     do {
       let response = try await session.respond(
-        to: "Current weather: \(weatherDescription). Suggest 5 activities with image prompts.",
+        to: "Current conditions: \(weatherDescription). Suggest 5 activities with image prompts that strictly reflect this time of day and lighting.",
         generating: ActivitiesResponse.self
       )
 
@@ -70,17 +82,23 @@ class AIRecommendationService: RecommendationServiceProtocol {
     let weatherDescription = buildWeatherDescription(weather)
 
     let session = LanguageModelSession(instructions: """
-    You are a food and drink advisor. Given the current weather conditions, \
-    suggest exactly 5 food or drink categories that would be appealing. \
-    Consider comfort, temperature, and cultural appropriateness. \
-    Keep names short — 1-3 words max. \
+    You are a food and drink advisor in Bali, Indonesia. Given the current weather conditions, \
+    suggest exactly 5 food or drink common categories that would be appealing in a tropical setting. \
+    Prioritize Balinese and Indonesian favorites (e.g., Fried Rice, Grilled Chicken, Satay, Coconut Water, \
+    or Tropical Fruit Bowls). Use descriptive English for the 'imagePrompt' (e.g., 'roasted spicy chicken' \
+    instead of 'ayam betutu') to avoid language errors. Consider comfort, temperature, and Bali's climate. \
+    Keep names short — 1-2 words max. \
     For each item, provide a detailed 'imagePrompt' that describes a realistic, \
-    high-fidelity photo of the food or drink. Do not use words like 'cartoon' or 'drawing'.
+    high-fidelity photo of the food or drink served in a Balinese setting (e.g., on a wooden \
+    table, with tropical leaves, or in a bamboo cafe). Use ONLY English words in the 'imagePrompt'. \
+    The lighting should reflect the current time (e.g., warm golden hour light, cozy evening lanterns, or bright midday sun).
     """)
+
+    print("🤖 [AIRecommendation] Fetching foods with description: \"\(weatherDescription)\"")
 
     do {
       let response = try await session.respond(
-        to: "Current weather: \(weatherDescription). Suggest 5 food items with image prompts.",
+        to: "Current conditions: \(weatherDescription). Suggest 5 food items with image prompts that strictly reflect this time of day and lighting.",
         generating: FoodsResponse.self
       )
 
@@ -119,7 +137,10 @@ class AIRecommendationService: RecommendationServiceProtocol {
       parts.append("Wind: \(Int(windSpeed.rounded())) km/h")
     }
 
-    parts.append(weather.isDay ? "Time: Daytime" : "Time: Nighttime")
+    if let localTime = weather.localTime {
+      parts.append("Current Time: \(localTime)")
+    }
+    parts.append(weather.isDay ? "Lighting: Daylight" : "Lighting: Nighttime")
 
     return parts.joined(separator: ". ")
   }
@@ -136,7 +157,7 @@ class AIRecommendationService: RecommendationServiceProtocol {
 
 @Generable
 struct AIActivityItem {
-  @Guide(description: "A short activity name, 1-3 words")
+  @Guide(description: "A 1-2 word common activity name (e.g., 'Spa Massage', 'Wine Bar', 'Hiking'). Ensure the category is distinct from others in the list.")
   var title: String
 
   @Guide(description: "A short subtitle with duration or context, under 30 characters")
@@ -145,7 +166,7 @@ struct AIActivityItem {
   @Guide(.anyOf(ACTIVITY_SF_SYMBOLS))
   var systemImageName: String
 
-  @Guide(description: "A detailed prompt for generating a realistic, high-fidelity photo of this activity. Focus on equipment and environment, avoiding people and human figures.")
+  @Guide(description: "A detailed prompt for generating a realistic, high-fidelity photo of this activity. Focus on equipment, environment, and atmosphere. Ensure the lighting and vibe reflect the current time (e.g., night lighting if it's after sunset). Avoid people and human figures.")
   var imagePrompt: String
 }
 
@@ -160,7 +181,7 @@ struct AIFoodItem {
   @Guide(.anyOf(FOOD_SF_SYMBOLS))
   var systemImageName: String
 
-  @Guide(description: "A detailed prompt for generating a realistic, appetizing, high-fidelity photo of this food or drink. Describe textures, lighting, and presentation.")
+  @Guide(description: "A detailed prompt for generating a realistic, appetizing, high-fidelity photo of this food or drink. Describe textures, lighting, and presentation. Ensure the lighting reflects the current time (e.g., warm evening glow vs bright morning light).")
   var imagePrompt: String
 }
 
@@ -194,7 +215,9 @@ let ACTIVITY_SF_SYMBOLS: [String] = [
   "dumbbell.fill", "figure.skiing.downhill",
   "figure.strengthtraining.traditional",
   "sun.max", "cloud.sun", "wind", "cloud.rain",
-  "tent", "water.waves"
+  "tent", "water.waves", "wineglass.fill", "music.note",
+  "theatermasks.fill", "house.fill", "building.columns.fill",
+  "bag.fill", "cart.fill", "book.fill", "sparkles"
 ]
 
 let FOOD_SF_SYMBOLS: [String] = [

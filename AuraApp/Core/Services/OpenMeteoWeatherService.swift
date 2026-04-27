@@ -70,7 +70,13 @@ class OpenMeteoWeatherService: WeatherServiceProtocol {
       windSpeed: Double(current.variables(at: 4)!.value),
       windDirection: Double(current.variables(at: 5)!.value),
       condition: WeatherCondition(wmoCode: Int(current.variables(at: 3)!.value)),
-      isDay: current.variables(at: 6)!.value == 1.0
+      isDay: current.variables(at: 6)!.value == 1.0,
+      localTime: {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(secondsFromGMT: Int(utcOffset))
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: Date())
+      }()
     )
 
     let hourly = response.hourly!
