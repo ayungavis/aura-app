@@ -16,6 +16,19 @@ struct CurrentWeatherView: View {
   @StateObject private var viewModel = CurrentWeatherViewModel()
   let navigationNamespace: Namespace.ID
   @State private var isTransitioning = false
+  @State private var scrollOffset: CGFloat = 0
+
+  // MARK: - Debug State
+  @State private var showDebugPanel = false
+  @State private var debugOverrideEnabled = false
+  @State private var debugCondition: WeatherCondition = .rainModerate
+  @State private var debugIsDay = true
+
+  /// Returns the overridden condition when debug is active,
+  /// otherwise falls back to the real weather condition.
+  private var effectiveCondition: WeatherCondition? {
+    debugOverrideEnabled ? debugCondition : viewModel.currentWeather?.condition
+  }
 
   var body: some View {
     Group {
@@ -56,6 +69,12 @@ struct CurrentWeatherView: View {
           .scaledToFit()
       }
 
+      // Fade out weather particles as the user scrolls down.
+      // Fully visible at scroll offset 0, fully faded by ~300pt.
+      WeatherBackgroundEffect(condition: effectiveCondition)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .opacity(max(0, 1.0 - scrollOffset / 300))
+
       ScrollView {
         Layout(direction: .vertical, spacing: 50) {
           Spacer().frame(height: 127)
@@ -88,7 +107,46 @@ struct CurrentWeatherView: View {
           Spacer().frame(height: 40)
         }
       }
+      .onScrollGeometryChange(for: CGFloat.self) { geometry in
+        // contentOffset.y is negative when scrolled down in a top-origin ScrollView,
+        // but we want a positive value representing how far the user scrolled.
+        -geometry.contentOffset.y
+      } action: { _, newOffset in
+        scrollOffset = newOffset
+      }
       .scrollDisabled(isTransitioning)
+      // MARK: - Debug Overlay
+      // Gear button pinned to top-right, panel slides in below it.
+      VStack {
+        HStack {
+          Spacer()
+          Button {
+            withAnimation(.spring(response: 0.3)) {
+              showDebugPanel.toggle()
+            }
+          } label: {
+            Image(systemName: "gearshape.fill")
+              .font(.system(size: 16, weight: .medium))
+              .foregroundStyle(.black.opacity(0.4))
+              .padding(10)
+              .background(.ultraThinMaterial)
+              .clipShape(Circle())
+          }
+          .padding(.trailing, 16)
+          .padding(.top, 54)
+        }
+
+        if showDebugPanel {
+          WeatherDebugOverlay(
+            isPresented: $showDebugPanel,
+            overrideEnabled: $debugOverrideEnabled,
+            overrideCondition: $debugCondition,
+            overrideIsDay: $debugIsDay
+          )
+        }
+
+        Spacer()
+      }
     }
     .ignoresSafeArea()
   }

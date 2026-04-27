@@ -98,6 +98,27 @@ enum WeatherCondition: Int, Codable {
       "cloud.bolt.rain.fill"
     }
   }
+
+  var isRaining: Bool {
+    switch self {
+    case .rainSlight, .rainModerate, .rainHeavy,
+         .rainShowersSlight, .rainShowersModerate, .rainShowersViolent,
+         .thunderstorm, .thunderstormWithHailSlight, .thunderstormWithHailHeavy,
+         .drizzleLight, .drizzleModerate, .drizzleDense:
+      return true
+    default:
+      return false
+    }
+  }
+
+  var isSunny: Bool {
+    switch self {
+    case .clearSky, .mainlyClear:
+      return true
+    default:
+      return false
+    }
+  }
 }
 
 struct CurrentWeatherData: Codable {
