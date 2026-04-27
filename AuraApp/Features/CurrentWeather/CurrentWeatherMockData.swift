@@ -6,15 +6,15 @@
 //
 
 let HOURLY_FORECAST_DATA: [Forecast] = [
-  Forecast(time: "Now", systemImage: "sun.max.fill", temperature: "30°", caption: nil),
-  Forecast(time: "17", systemImage: "sun.max.fill", temperature: "30°", caption: nil),
-  Forecast(time: "18", systemImage: "sun.max.fill", temperature: "29°", caption: nil),
-  Forecast(time: "18:17", systemImage: "sunset.fill", temperature: "", caption: "Sunset"),
-  Forecast(time: "19", systemImage: "moon.stars.fill", temperature: "29°", caption: nil),
-  Forecast(time: "20", systemImage: "moon.stars.fill", temperature: "29°", caption: nil),
-  Forecast(time: "21", systemImage: "moon.stars.fill", temperature: "28°", caption: nil),
-  Forecast(time: "22", systemImage: "moon.fill", temperature: "27°", caption: nil),
-  Forecast(time: "23", systemImage: "moon.haze.fill", temperature: "27°", caption: nil),
+  Forecast(time: "Now", systemImage: "cloud.rain.fill", temperature: "26°", caption: nil, precipitationPercentage: 95),
+  Forecast(time: "01", systemImage: "cloud.sun.rain.fill", temperature: "26°", caption: nil, precipitationPercentage: 60),
+  Forecast(time: "02", systemImage: "cloud.moon.rain.fill", temperature: "25°", caption: nil, precipitationPercentage: 55),
+  Forecast(time: "03", systemImage: "cloud.rain.fill", temperature: "25°", caption: nil, precipitationPercentage: 50),
+  Forecast(time: "04", systemImage: "cloud.fill", temperature: "26°", caption: nil, precipitationPercentage: 0),
+  Forecast(time: "05", systemImage: "cloud.sun.rain.fill", temperature: "26°", caption: nil, precipitationPercentage: 30),
+  Forecast(time: "06", systemImage: "cloud.heavyrain.fill", temperature: "25°", caption: nil, precipitationPercentage: 90),
+  Forecast(time: "07", systemImage: "sun.max.fill", temperature: "27°", caption: nil, precipitationPercentage: 0),
+  Forecast(time: "08", systemImage: "sun.max.fill", temperature: "28°", caption: nil, precipitationPercentage: 0),
 ]
 
 let RECOMMENDED_ACTIVITIES: [Activity] = [

@@ -125,7 +125,8 @@ class CurrentWeatherViewModel: ObservableObject {
           time: index == 0 ? "Now" : hour.date.formatted(hourStyle),
           systemImage: hour.condition.systemImageName(isDay: weather.current.isDay),
           temperature: "\(Int(hour.temperature.rounded()))°",
-          caption: nil
+          caption: nil,
+          precipitationPercentage: hour.precipitationProbability
         )
       }
 

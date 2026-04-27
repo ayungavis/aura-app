@@ -117,6 +117,7 @@ struct HourlyWeatherData: Codable {
   let condition: WeatherCondition
   let humidity: Int?
   let windSpeed: Double?
+  let precipitationProbability: Int?
 }
 
 struct WeatherResponse: Codable {

@@ -13,4 +13,5 @@ struct Forecast: Identifiable {
     let systemImage: String
     let temperature: String
     let caption: String?
+    let precipitationPercentage: Int?
 }

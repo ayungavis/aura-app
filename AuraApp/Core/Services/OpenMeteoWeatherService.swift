@@ -30,7 +30,7 @@ class OpenMeteoWeatherService: WeatherServiceProtocol {
       URLQueryItem(name: "latitude", value: "\(lat)"),
       URLQueryItem(name: "longitude", value: "\(lon)"),
       URLQueryItem(name: "current", value: "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day"),
-      URLQueryItem(name: "hourly", value: "temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m"),
+      URLQueryItem(name: "hourly", value: "temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,precipitation_probability"),
       URLQueryItem(name: "timezone", value: "auto"),
       URLQueryItem(name: "forecast_hours", value: "24"),
       URLQueryItem(name: "format", value: "flatbuffers"),
@@ -58,7 +58,7 @@ class OpenMeteoWeatherService: WeatherServiceProtocol {
 
   /// current param order: temperature_2m(0), apparent_temperature(1), relative_humidity_2m(2),
   ///   weather_code(3), wind_speed_10m(4), wind_direction_10m(5), is_day(6)
-  /// hourly param order: temperature_2m(0), weather_code(1), relative_humidity_2m(2), wind_speed_10m(3)
+  /// hourly param order: temperature_2m(0), weather_code(1), relative_humidity_2m(2), wind_speed_10m(3), precipitation_probability(4)
   private func parseResponse(_ response: WeatherApiResponse) -> WeatherResponse {
     let utcOffset = response.utcOffsetSeconds
     let current = response.current!
@@ -85,6 +85,7 @@ class OpenMeteoWeatherService: WeatherServiceProtocol {
     let weatherCodes = hourly.variables(at: 1)!.values
     let humidities = hourly.variables(at: 2)!.values
     let windSpeeds = hourly.variables(at: 3)!.values
+    let precipitationProbabilities = hourly.variables(at: 4)!.values
 
     let hourlyData: [HourlyWeatherData] = (0 ..< times.count).map { i in
       HourlyWeatherData(
@@ -92,7 +93,8 @@ class OpenMeteoWeatherService: WeatherServiceProtocol {
         temperature: Double(temperatures[i]),
         condition: WeatherCondition(wmoCode: Int(weatherCodes[i])),
         humidity: Int(humidities[i]),
-        windSpeed: Double(windSpeeds[i])
+        windSpeed: Double(windSpeeds[i]),
+        precipitationProbability: Int(precipitationProbabilities[i])
       )
     }
 

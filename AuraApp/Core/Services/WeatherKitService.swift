@@ -40,7 +40,8 @@ class WeatherKitService: WeatherServiceProtocol {
         temperature: hour.temperature.value,
         condition: Self.mapCondition(hour.condition),
         humidity: Int(hour.humidity * 100),
-        windSpeed: hour.wind.speed.value
+        windSpeed: hour.wind.speed.value,
+        precipitationProbability: Int(hour.precipitationChance * 100)
       )
     }
 
