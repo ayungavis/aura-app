@@ -7,12 +7,14 @@
 //  Used on devices that don't support Apple Intelligence, or as a
 //  fallback when the on-device model isn't available.
 //
+//  Created by Wahyu Kurniawan on 26/04/26.
+//
 
 import Foundation
 
 class FallbackRecommendationService: RecommendationServiceProtocol {
-
   // MARK: - Fetch Activities
+
   // Groups weather conditions into broad categories, then returns
   // curated recommendations for each category.
 
@@ -29,12 +31,12 @@ class FallbackRecommendationService: RecommendationServiceProtocol {
     case .fog, .depositingRimeFog:
       return foggyActivities()
     case .drizzleLight, .drizzleModerate, .drizzleDense,
-        .rainSlight, .rainModerate, .rainShowersSlight, .rainShowersModerate:
+         .rainSlight, .rainModerate, .rainShowersSlight, .rainShowersModerate:
       return lightRainActivities()
     case .rainHeavy, .rainShowersViolent:
       return heavyRainActivities()
     case .snowFallSlight, .snowFallModerate, .snowFallHeavy,
-        .snowGrains, .snowShowersSlight, .snowShowersHeavy:
+         .snowGrains, .snowShowersSlight, .snowShowersHeavy:
       return snowActivities()
     case .thunderstorm, .thunderstormWithHailSlight, .thunderstormWithHailHeavy:
       return thunderstormActivities()
@@ -56,11 +58,11 @@ class FallbackRecommendationService: RecommendationServiceProtocol {
     case .fog, .depositingRimeFog:
       return foggyWeatherFoods()
     case .drizzleLight, .drizzleModerate, .drizzleDense,
-        .rainSlight, .rainModerate, .rainShowersSlight, .rainShowersModerate,
-        .rainHeavy, .rainShowersViolent:
+         .rainSlight, .rainModerate, .rainShowersSlight, .rainShowersModerate,
+         .rainHeavy, .rainShowersViolent:
       return rainyWeatherFoods()
     case .snowFallSlight, .snowFallModerate, .snowFallHeavy,
-        .snowGrains, .snowShowersSlight, .snowShowersHeavy:
+         .snowGrains, .snowShowersSlight, .snowShowersHeavy:
       return coldWeatherFoods()
     case .thunderstorm, .thunderstormWithHailSlight, .thunderstormWithHailHeavy:
       return rainyWeatherFoods()
@@ -214,6 +216,7 @@ class FallbackRecommendationService: RecommendationServiceProtocol {
   }
 
   // MARK: - Helpers
+
   // Convert tuple arrays into Activity/Food structs.
   // imageName stores the SF Symbol name — the card component renders it.
 

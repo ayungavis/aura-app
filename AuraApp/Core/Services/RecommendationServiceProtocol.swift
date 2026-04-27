@@ -7,6 +7,8 @@
 //  This is "dependency inversion" — the ViewModel doesn't know which
 //  implementation it's using, making the code testable and flexible.
 //
+//  Created by Wahyu Kurniawan on 26/04/26.
+//
 
 import Foundation
 

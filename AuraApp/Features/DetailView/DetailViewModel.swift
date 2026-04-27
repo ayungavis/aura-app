@@ -2,6 +2,8 @@
 //  DetailViewModel.swift
 //  AuraApp
 //
+//  Created by Wahyu Kurniawan on 26/04/26.
+//
 
 import Combine
 import Foundation

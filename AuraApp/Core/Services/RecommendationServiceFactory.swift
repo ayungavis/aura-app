@@ -10,11 +10,12 @@
 //  This is the "Factory Pattern" — one place decides which implementation to use,
 //  so the rest of the app doesn't need to know or care.
 //
+//  Created by Wahyu Kurniawan on 26/04/26.
+//
 
 import FoundationModels
 
 enum RecommendationServiceFactory {
-
   /// Creates the best available recommendation service for this device.
   /// Check happens at call time so it always reflects current availability.
   static func create() -> RecommendationServiceProtocol {

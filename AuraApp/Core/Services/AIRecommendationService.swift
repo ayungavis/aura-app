@@ -14,12 +14,14 @@
 //
 //  Privacy: All inference happens on-device. No data leaves the device.
 //
+//  Created by Wahyu Kurniawan on 26/04/26.
+//
 
 import FoundationModels
 
 class AIRecommendationService: RecommendationServiceProtocol {
-
   // MARK: - Fetch Activities
+
   // Asks the on-device model to suggest activities that match the weather.
 
   func fetchActivities(weather: CurrentWeatherData) async throws -> [Activity] {
@@ -27,11 +29,11 @@ class AIRecommendationService: RecommendationServiceProtocol {
 
     // Create a session with instructions that set the model's "personality"
     let session = LanguageModelSession(instructions: """
-      You are an outdoor activity advisor. Given the current weather conditions, \
-      suggest exactly 5 activities that would be enjoyable and safe. \
-      Consider temperature, precipitation, and overall conditions. \
-      Be creative but practical — suggest things people would actually want to do.
-      """)
+    You are an outdoor activity advisor. Given the current weather conditions, \
+    suggest exactly 5 activities that would be enjoyable and safe. \
+    Consider temperature, precipitation, and overall conditions. \
+    Be creative but practical — suggest things people would actually want to do.
+    """)
 
     do {
       // Ask the model to generate 5 structured recommendations
@@ -52,17 +54,18 @@ class AIRecommendationService: RecommendationServiceProtocol {
   }
 
   // MARK: - Fetch Foods
+
   // Asks the on-device model to suggest foods/drinks that match the weather.
 
   func fetchFoods(weather: CurrentWeatherData) async throws -> [Food] {
     let weatherDescription = buildWeatherDescription(weather)
 
     let session = LanguageModelSession(instructions: """
-      You are a food and drink advisor. Given the current weather conditions, \
-      suggest exactly 5 food or drink categories that would be appealing. \
-      Consider comfort, temperature, and cultural appropriateness. \
-      Keep names short — 1-3 words max.
-      """)
+    You are a food and drink advisor. Given the current weather conditions, \
+    suggest exactly 5 food or drink categories that would be appealing. \
+    Consider comfort, temperature, and cultural appropriateness. \
+    Keep names short — 1-3 words max.
+    """)
 
     do {
       let response = try await session.respond(
@@ -80,6 +83,7 @@ class AIRecommendationService: RecommendationServiceProtocol {
   }
 
   // MARK: - Weather Description Builder
+
   // Converts structured weather data into a natural language string
   // that the language model can understand and reason about.
 
@@ -103,6 +107,7 @@ class AIRecommendationService: RecommendationServiceProtocol {
 }
 
 // MARK: - @Generable Types (Internal)
+
 // These are only used by this service to get structured output from the AI.
 // The AI generates these, then we convert them to Activity/Food for display.
 //
@@ -152,6 +157,7 @@ struct FoodsResponse {
 }
 
 // MARK: - SF Symbol Catalogs
+
 // Predefined lists of SF Symbol names that the AI can pick from.
 // These are used by @Guide(.anyOf()) to constrain the model's output
 // to only valid SF Symbol names that exist on iOS.
