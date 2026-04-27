@@ -121,4 +121,5 @@ struct HourlyWeatherData: Codable {
 struct WeatherResponse: Codable {
   let current: CurrentWeatherData
   let hourly: [HourlyWeatherData]
+  let timezoneOffset: Int
 }

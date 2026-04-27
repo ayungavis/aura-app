@@ -74,7 +74,7 @@ class OpenMeteoWeatherService: WeatherServiceProtocol {
     )
 
     let hourly = response.hourly!
-    let times = hourly.getDateTime(offset: utcOffset)
+    let times = hourly.getDateTime(offset: 0)
     let temperatures = hourly.variables(at: 0)!.values
     let weatherCodes = hourly.variables(at: 1)!.values
     let humidities = hourly.variables(at: 2)!.values
@@ -90,6 +90,6 @@ class OpenMeteoWeatherService: WeatherServiceProtocol {
       )
     }
 
-    return WeatherResponse(current: currentWeather, hourly: hourlyData)
+    return WeatherResponse(current: currentWeather, hourly: hourlyData, timezoneOffset: Int(utcOffset))
   }
 }

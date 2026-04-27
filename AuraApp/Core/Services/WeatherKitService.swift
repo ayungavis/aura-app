@@ -38,7 +38,7 @@ class WeatherKitService: WeatherServiceProtocol {
       )
     }
 
-    return WeatherResponse(current: current, hourly: hourly)
+    return WeatherResponse(current: current, hourly: hourly, timezoneOffset: TimeZone.current.secondsFromGMT())
   }
 
   private static func mapCondition(_ condition: WeatherKit.WeatherCondition) -> WeatherCondition {
