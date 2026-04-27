@@ -107,6 +107,8 @@ struct ListView: View {
           }
           .animation(.easeInOut(duration: 0.4), value: viewModel.isLoading)
 
+          FooterTripAdvisor()
+
           Spacer(minLength: 40)
         }
         .padding(.horizontal)

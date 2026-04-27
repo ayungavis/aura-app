@@ -115,6 +115,8 @@ struct DetailView: View {
                 )
                 ReviewsSection(reviews: viewModel.reviews, numReviews: viewModel.detail?.numReviews, webUrl: viewModel.detail?.webUrl)
                 DetailsSection(detail: viewModel.detail)
+
+                FooterTripAdvisor()
               }
               .padding(.vertical, 20)
               .padding(.bottom, 80)

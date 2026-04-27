@@ -83,7 +83,9 @@ struct CurrentWeatherView: View {
             latLong: viewModel.latLongString
           )
 
-          Spacer().frame(height: 20)
+          footer
+
+          Spacer().frame(height: 40)
         }
       }
       .scrollDisabled(isTransitioning)
@@ -111,6 +113,28 @@ struct CurrentWeatherView: View {
       }
       .buttonStyle(.bordered)
     }
+  }
+
+  // MARK: - Footer
+  // Branded attribution for AI features.
+
+  private var footer: some View {
+    HStack(spacing: 6) {
+      Text("Powered by")
+        .font(.custom("InstrumentSans-Regular", size: 14))
+        .foregroundStyle(.secondary.opacity(0.8))
+
+      Image("logo-apple-intelligence-icon")
+        .resizable()
+        .scaledToFit()
+        .frame(height: 18)
+
+      Image("logo-apple-intelligence-text")
+        .resizable()
+        .scaledToFit()
+        .frame(height: 14)
+    }
+    .frame(maxWidth: .infinity)
   }
 }
 
