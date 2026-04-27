@@ -15,6 +15,8 @@ struct ListView: View {
   let initialImage: UIImage?
   let imageURL: URL?
   let imageName: String?
+  let tripAdvisorCategory: String?
+  let latLong: String?
   let navigationNamespace: Namespace.ID
 
   // MARK: - State
@@ -24,13 +26,15 @@ struct ListView: View {
   @State private var isTransitioning = false
   @Namespace private var animation
 
-  init(category: String, initialImage: UIImage? = nil, imageURL: URL? = nil, imageName: String? = nil, navigationNamespace: Namespace.ID) {
+  init(category: String, initialImage: UIImage? = nil, imageURL: URL? = nil, imageName: String? = nil, tripAdvisorCategory: String? = nil, latLong: String? = nil, navigationNamespace: Namespace.ID) {
     self.category = category
     self.initialImage = initialImage
     self.imageURL = imageURL
     self.imageName = imageName
+    self.tripAdvisorCategory = tripAdvisorCategory
+    self.latLong = latLong
     self.navigationNamespace = navigationNamespace
-    _viewModel = StateObject(wrappedValue: ListViewModel(category: category))
+    _viewModel = StateObject(wrappedValue: ListViewModel(category: category, tripAdvisorCategory: tripAdvisorCategory, latLong: latLong))
   }
 
   // MARK: - Body

@@ -14,9 +14,11 @@ class TripAdvisorService: TripAdvisorServiceProtocol {
   func searchLocations(
     query: String,
     latLong: String? = nil,
-    category: String? = nil
+    category: String? = nil,
+    radius: Int? = nil,
+    radiusUnit: String? = nil
   ) async throws -> [LocationItem] {
-    let cacheKey = "search_\(query)_\(latLong ?? "none")_\(category ?? "none")"
+    let cacheKey = "search_\(query)_\(latLong ?? "none")_\(category ?? "none")_\(radius ?? 0)_\(radiusUnit ?? "none")"
     if let cachedData = cache.load(key: cacheKey, as: [LocationItem].self) {
       AppLogger.cacheHit(cacheKey)
       return cachedData
@@ -30,6 +32,12 @@ class TripAdvisorService: TripAdvisorServiceProtocol {
 
     if let latLong = latLong {
       queryItems.append(URLQueryItem(name: "latLong", value: latLong))
+      if let radius = radius {
+        queryItems.append(URLQueryItem(name: "radius", value: "\(radius)"))
+      }
+      if let radiusUnit = radiusUnit {
+        queryItems.append(URLQueryItem(name: "radiusUnit", value: radiusUnit))
+      }
     }
     if let category = category {
       queryItems.append(URLQueryItem(name: "category", value: category))

@@ -14,6 +14,7 @@ struct RecommendedFoods: View {
 
   /// Food recommendations from the ViewModel.
   let foods: [Food]
+  let latLong: String?
 
   var body: some View {
     Layout(direction: .vertical, spacing: 16) {
@@ -39,7 +40,9 @@ struct RecommendedFoods: View {
                 category: item.title,
                 imageURL: item.imageURL,
                 imageData: item.generatedImage?.pngData(),
-                imageName: item.imageName
+                imageName: item.imageName,
+                tripAdvisorCategory: "restaurants",
+                latLong: latLong
               ))
             }
           }
@@ -47,9 +50,4 @@ struct RecommendedFoods: View {
       }
     }
   }
-}
-
-#Preview {
-  @Previewable @Namespace var anim
-  RecommendedFoods(navigationNamespace: anim, foods: [])
 }

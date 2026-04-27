@@ -72,13 +72,15 @@ struct CurrentWeatherView: View {
           // AI-powered activity recommendations based on weather
           RecommendedActivities(
             navigationNamespace: navigationNamespace,
-            activities: viewModel.activities.isEmpty ? RECOMMENDED_ACTIVITIES : viewModel.activities
+            activities: viewModel.activities.isEmpty ? RECOMMENDED_ACTIVITIES : viewModel.activities,
+            latLong: viewModel.latLongString
           )
 
           // AI-powered food recommendations based on weather
           RecommendedFoods(
             navigationNamespace: navigationNamespace,
-            foods: viewModel.foods.isEmpty ? RECOMMENDED_FOODS : viewModel.foods
+            foods: viewModel.foods.isEmpty ? RECOMMENDED_FOODS : viewModel.foods,
+            latLong: viewModel.latLongString
           )
 
           Spacer().frame(height: 20)

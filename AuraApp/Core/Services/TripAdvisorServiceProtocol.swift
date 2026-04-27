@@ -9,7 +9,9 @@ protocol TripAdvisorServiceProtocol {
     func searchLocations(
         query: String,
         latLong: String?,
-        category: String?
+        category: String?,
+        radius: Int?,
+        radiusUnit: String?
     ) async throws -> [LocationItem]
 
     func getLocationDetails(locationId: String) async throws -> LocationDetail

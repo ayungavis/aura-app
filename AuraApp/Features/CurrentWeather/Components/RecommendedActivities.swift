@@ -15,6 +15,7 @@ struct RecommendedActivities: View {
   /// Activity recommendations from the ViewModel.
   /// Can be AI-generated or rule-based fallback — this view doesn't care which.
   let activities: [Activity]
+  let latLong: String?
 
   var body: some View {
     Layout(direction: .vertical, spacing: 16) {
@@ -40,7 +41,9 @@ struct RecommendedActivities: View {
                 category: item.title,
                 imageURL: item.imageURL,
                 imageData: item.generatedImage?.pngData(),
-                imageName: item.imageName
+                imageName: item.imageName,
+                tripAdvisorCategory: "attractions",
+                latLong: latLong
               ))
             }
           }
@@ -48,9 +51,4 @@ struct RecommendedActivities: View {
       }
     }
   }
-}
-
-#Preview {
-  @Previewable @Namespace var anim
-  RecommendedActivities(navigationNamespace: anim, activities: [])
 }

@@ -16,13 +16,19 @@ class ListViewModel: ObservableObject {
   @Published var error: Error?
 
   let category: String
+  let tripAdvisorCategory: String?
+  let latLong: String?
   private let service: TripAdvisorServiceProtocol
 
   init(
     category: String,
+    tripAdvisorCategory: String? = nil,
+    latLong: String? = nil,
     service: TripAdvisorServiceProtocol = TripAdvisorService()
   ) {
     self.category = category
+    self.tripAdvisorCategory = tripAdvisorCategory
+    self.latLong = latLong
     self.service = service
   }
 
@@ -47,8 +53,10 @@ class ListViewModel: ObservableObject {
     do {
       let fetchedLocations = try await service.searchLocations(
         query: category + " Bali",
-        latLong: "-8.717,115.174",
-        category: "attractions"
+        latLong: latLong,
+        category: tripAdvisorCategory ?? "attractions",
+        radius: 60,
+        radiusUnit: "km"
       )
 
       locations = fetchedLocations.sorted {

@@ -31,6 +31,11 @@ class CurrentWeatherViewModel: ObservableObject {
   @Published var error: Error?
   @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
   @Published var locationName: String?
+
+  var latLongString: String? {
+    guard let location = lastFetchLocation else { return nil }
+    return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+  }
   
   private var lastFetchLocation: CLLocation?
   private var imageGenerationTask: Task<Void, Never>?
