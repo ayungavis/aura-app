@@ -22,7 +22,6 @@ struct HourlyForecast: View {
                 Layout(direction: .horizontal, spacing: 28) {
                     ForEach(Array(forecasts.enumerated()), id: \.element.id) { index, item in
                         ForecastItem(forecast: item)
-                            .fixedSize()
                             .padding(.leading, index == 0 ? 20 : 0)
                             .padding(.trailing, index == forecasts.count - 1 ? 20 : 0)
                     }

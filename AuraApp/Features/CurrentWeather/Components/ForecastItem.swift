@@ -11,11 +11,13 @@ struct ForecastItem: View {
   let forecast: Forecast
 
   var body: some View {
-    Layout(direction: .vertical, align: .center, spacing: 24, width: .fit, height: .fit) {
+    Layout(direction: .vertical, align: .center, spacing: 24, width: .fit, height: .fixed(120)) {
       CustomText(forecast.time)
 
       Image(systemName: forecast.systemImage)
         .resizable()
+        .scaledToFit()
+        .frame(width: 32, height: 32)
         .foregroundStyle(.black)
         .symbolRenderingMode(.hierarchical)
 
