@@ -2,7 +2,8 @@
 //  RecommendedFoods.swift
 //  AuraApp
 //
-//  Created by Wahyu Kurniawan on 22/04/26.
+//  Horizontal scrollable list of food/drink recommendation cards.
+//  Now accepts dynamic data from the ViewModel instead of hardcoded mock data.
 //
 
 import SwiftUI
@@ -10,23 +11,27 @@ import SwiftUI
 struct RecommendedFoods: View {
   @Environment(AppRouter.self) private var router
 
+  /// Food recommendations from the ViewModel.
+  let foods: [Food]
+
   var body: some View {
     Layout(direction: .vertical, spacing: 16) {
       SectionHeader(title: "Recommended Foods").padding(.horizontal, 20)
 
       ScrollView(.horizontal, showsIndicators: false) {
         Layout(direction: .horizontal, spacing: 12) {
-          ForEach(
-            Array(RECOMMENDED_FOODS.enumerated()),
-            id: \.element.id
-          ) { index, item in
-            ActivityItem(activity: item)
-              .fixedSize()
-              .padding(.leading, index == 0 ? 20 : 0)
-              .padding(.trailing, index == RECOMMENDED_FOODS.count - 1 ? 20 : 0)
-              .onTapGesture {
-                router.navigate(to: .list(category: item.title))
-              }
+          ForEach(foods) { item in
+            ActivityItem(
+              title: item.title,
+              subtitle: item.subtitle,
+              systemImageName: item.imageName
+            )
+            .fixedSize()
+            .padding(.leading, foods.first?.id == item.id ? 20 : 0)
+            .padding(.trailing, foods.last?.id == item.id ? 20 : 0)
+            .onTapGesture {
+              router.navigate(to: .list(category: item.title))
+            }
           }
         }
       }
@@ -35,5 +40,5 @@ struct RecommendedFoods: View {
 }
 
 #Preview {
-  RecommendedFoods()
+  RecommendedFoods(foods: [])
 }

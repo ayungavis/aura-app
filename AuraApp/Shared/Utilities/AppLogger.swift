@@ -11,6 +11,7 @@ enum AppLogger {
     private static let location = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.aura.app", category: "Location")
     private static let cache = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.aura.app", category: "Cache")
     private static let weather = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.aura.app", category: "Weather")
+    private static let places = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.aura.app", category: "Places")
 
     static func networkRequest(_ endpoint: String) {
         network.info("Request: \(endpoint, privacy: .public)")
@@ -62,5 +63,13 @@ enum AppLogger {
 
     static func weatherError(_ error: Error) {
         weather.error("Error: \(error.localizedDescription, privacy: .public)")
+    }
+
+    static func placesLoaded(_ context: String, count: Int) {
+        places.info("Loaded: \(context, privacy: .public) — \(count) items")
+    }
+
+    static func placesError(_ context: String, error: Error) {
+        places.error("Error: \(context, privacy: .public) — \(error.localizedDescription, privacy: .public)")
     }
 }

@@ -2,6 +2,8 @@
 //  ListViewModel.swift
 //  AuraApp
 //
+//  Created by Wahyu Kurniawan on 26/04/26.
+//
 
 import Combine
 import Foundation
@@ -11,17 +13,36 @@ import SwiftUI
 class ListViewModel: ObservableObject {
   @Published var locations: [LocationItem] = []
   @Published var isLoading = false
-  @Published var errorMessage: String?
+  @Published var error: Error?
 
+  let category: String
   private let service: TripAdvisorServiceProtocol
 
-  init(service: TripAdvisorServiceProtocol = TripAdvisorService()) {
+  init(
+    category: String,
+    service: TripAdvisorServiceProtocol = TripAdvisorService()
+  ) {
+    self.category = category
     self.service = service
   }
 
-  func loadLocations(category: String) async {
+  func onAppear() {
+    Task {
+      await loadLocations()
+    }
+  }
+
+  func retry() {
+    error = nil
+    Task {
+      await loadLocations()
+    }
+  }
+
+  private func loadLocations() async {
     isLoading = true
-    errorMessage = nil
+    error = nil
+    defer { isLoading = false }
 
     do {
       let fetchedLocations = try await service.searchLocations(
@@ -36,12 +57,11 @@ class ListViewModel: ObservableObject {
         return d1 < d2
       }
 
-      isLoading = false
+      AppLogger.placesLoaded("search", count: locations.count)
       await fetchImagesForLocations()
     } catch {
-      errorMessage = "Failed to load places."
-      AppLogger.networkError("searchLocations", error: error)
-      isLoading = false
+      self.error = error
+      AppLogger.placesError("searchLocations", error: error)
     }
   }
 
