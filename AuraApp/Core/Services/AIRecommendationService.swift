@@ -17,7 +17,10 @@
 //  Created by Wahyu Kurniawan on 26/04/26.
 //
 
+import Foundation
+import UIKit
 import FoundationModels
+import ImagePlayground
 
 class AIRecommendationService: RecommendationServiceProtocol {
   // MARK: - Fetch Activities
@@ -27,27 +30,33 @@ class AIRecommendationService: RecommendationServiceProtocol {
   func fetchActivities(weather: CurrentWeatherData) async throws -> [Activity] {
     let weatherDescription = buildWeatherDescription(weather)
 
-    // Create a session with instructions that set the model's "personality"
     let session = LanguageModelSession(instructions: """
-    You are an outdoor activity advisor. Given the current weather conditions, \
-    suggest exactly 5 activities that would be enjoyable and safe. \
-    Consider temperature, precipitation, and overall conditions. \
-    Be creative but practical — suggest things people would actually want to do.
+    You are a weather-aware activity advisor. Given the current weather conditions, \
+    suggest exactly 5 activities that would be appropriate. \
+    Keep names and subtitles short — 1-3 words each. \
+    For each item, provide a detailed 'imagePrompt' that describes a realistic, \
+    high-fidelity photo of the activity. Do not include any people or human figures. \
+    Focus on equipment, environment, and atmosphere. Do not use words like 'cartoon' or 'drawing'.
     """)
 
     do {
-      // Ask the model to generate 5 structured recommendations
       let response = try await session.respond(
-        to: "Current weather: \(weatherDescription). Suggest 5 activities.",
+        to: "Current weather: \(weatherDescription). Suggest 5 activities with image prompts.",
         generating: ActivitiesResponse.self
       )
 
-      // Convert @Generable output into Activity display models
-      return response.content.items.map { item in
-        Activity(title: item.title, subtitle: item.subtitle, imageName: item.systemImageName)
+      let items: [AIActivityItem] = response.content.items
+
+      // Return recommendations immediately without waiting for image generation
+      return items.map { item in
+        Activity(
+          title: item.title,
+          subtitle: item.subtitle,
+          imageName: item.systemImageName,
+          imagePrompt: item.imagePrompt
+        )
       }
     } catch {
-      // If AI fails for any reason, fall back to rule-based recommendations
       AppLogger.placesError("activities_ai", error: error)
       return try await FallbackRecommendationService().fetchActivities(weather: weather)
     }
@@ -64,17 +73,27 @@ class AIRecommendationService: RecommendationServiceProtocol {
     You are a food and drink advisor. Given the current weather conditions, \
     suggest exactly 5 food or drink categories that would be appealing. \
     Consider comfort, temperature, and cultural appropriateness. \
-    Keep names short — 1-3 words max.
+    Keep names short — 1-3 words max. \
+    For each item, provide a detailed 'imagePrompt' that describes a realistic, \
+    high-fidelity photo of the food or drink. Do not use words like 'cartoon' or 'drawing'.
     """)
 
     do {
       let response = try await session.respond(
-        to: "Current weather: \(weatherDescription). Suggest 5 food or drink categories.",
+        to: "Current weather: \(weatherDescription). Suggest 5 food items with image prompts.",
         generating: FoodsResponse.self
       )
 
-      return response.content.items.map { item in
-        Food(title: item.title, subtitle: item.subtitle, imageName: item.systemImageName)
+      let items: [AIFoodItem] = response.content.items
+
+      // Return recommendations immediately without waiting for image generation
+      return items.map { item in
+        Food(
+          title: item.title,
+          subtitle: item.subtitle,
+          imageName: item.systemImageName,
+          imagePrompt: item.imagePrompt
+        )
       }
     } catch {
       AppLogger.placesError("foods_ai", error: error)
@@ -125,6 +144,9 @@ struct AIActivityItem {
 
   @Guide(.anyOf(ACTIVITY_SF_SYMBOLS))
   var systemImageName: String
+
+  @Guide(description: "A detailed prompt for generating a realistic, high-fidelity photo of this activity. Focus on equipment and environment, avoiding people and human figures.")
+  var imagePrompt: String
 }
 
 @Generable
@@ -137,6 +159,9 @@ struct AIFoodItem {
 
   @Guide(.anyOf(FOOD_SF_SYMBOLS))
   var systemImageName: String
+
+  @Guide(description: "A detailed prompt for generating a realistic, appetizing, high-fidelity photo of this food or drink. Describe textures, lighting, and presentation.")
+  var imagePrompt: String
 }
 
 // Response wrappers — the model generates all 5 items in one request.
@@ -163,19 +188,19 @@ struct FoodsResponse {
 // to only valid SF Symbol names that exist on iOS.
 
 let ACTIVITY_SF_SYMBOLS: [String] = [
-  "figure.run", "figure.biking", "figure.soccer",
-  "figure.hiking", "figure.yoga", "figure.swimming",
+  "figure.run", "figure.outdoor.cycle", "figure.soccer",
+  "figure.hiking", "figure.yoga", "figure.open.water.swim",
   "figure.surfing", "figure.climbing", "figure.walk",
-  "figure.gym", "figure.pool", "figure.skiing",
-  "figure.cycling", "figure.strengthtraining",
+  "dumbbell.fill", "figure.skiing.downhill",
+  "figure.strengthtraining.traditional",
   "sun.max", "cloud.sun", "wind", "cloud.rain",
   "tent", "water.waves"
 ]
 
 let FOOD_SF_SYMBOLS: [String] = [
   "cup.and.saucer", "fork.knife", "takeoutbag.and.cup.and.straw",
-  "carrot", "fish", "cake", "icecream",
-  "mug", "popcorn", "pizza",
-  "apple", "leaf", "flame",
-  "bowl.rice", "cup.saucer", "birthday.cake"
+  "carrot", "fish", "birthday.cake", "snowflake",
+  "mug", "popcorn",
+  "leaf", "flame",
+  "cup.and.saucer.fill"
 ]

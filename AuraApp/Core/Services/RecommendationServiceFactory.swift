@@ -24,14 +24,16 @@ enum RecommendationServiceFactory {
     switch model.availability {
     case .available:
       // On-device AI is ready — use it for personalized recommendations
-      AppLogger.placesLoaded("recommendation_service", count: 0)
+      print("🤖 [RecommendationFactory] Apple Intelligence AVAILABLE — using AIRecommendationService")
       return AIRecommendationService()
-    case .unavailable:
+    case .unavailable(let reason):
       // Device doesn't support Apple Intelligence, or it's not enabled
       // Fall back to deterministic rule-based recommendations
+      print("🤖 [RecommendationFactory] Apple Intelligence UNAVAILABLE (reason: \(reason)) — using FallbackRecommendationService")
       return FallbackRecommendationService()
     @unknown default:
       // Future-proof: handle unknown cases with the safe fallback
+      print("🤖 [RecommendationFactory] Apple Intelligence UNKNOWN status — using FallbackRecommendationService")
       return FallbackRecommendationService()
     }
   }

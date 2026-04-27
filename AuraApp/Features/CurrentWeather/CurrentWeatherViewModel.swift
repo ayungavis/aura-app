@@ -6,6 +6,7 @@
 //  - Fetches weather data from the service layer
 //  - Publishes state updates that the View observes
 //  - Generates activity and food recommendations based on weather
+//  - Asynchronously generates images via Image Playground after recommendations load
 //
 //  All @Published properties automatically trigger UI updates when they change.
 //  @MainActor ensures everything runs on the main thread (UI thread).
@@ -30,6 +31,9 @@ class CurrentWeatherViewModel: ObservableObject {
   @Published var error: Error?
   @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
   @Published var locationName: String?
+  
+  private var lastFetchLocation: CLLocation?
+  private var imageGenerationTask: Task<Void, Never>?
 
   // MARK: - Dependencies
   // Services are injected via protocols for testability.
@@ -83,8 +87,15 @@ class CurrentWeatherViewModel: ObservableObject {
   // MARK: - Private: Weather Fetching
 
   private func fetchWeather(for location: CLLocation) async {
+    // Avoid redundant fetches if location hasn't changed significantly (e.g., 500 meters)
+    if let lastLocation = lastFetchLocation, location.distance(from: lastLocation) < 500 {
+      print("📍 [ViewModel] Skipping weather fetch, location hasn't changed significantly")
+      return
+    }
+    
     isLoading = true
     error = nil
+    lastFetchLocation = location
     defer { isLoading = false }
 
     do {
@@ -113,20 +124,80 @@ class CurrentWeatherViewModel: ObservableObject {
         )
       }
 
-      // Step 4: Fetch recommendations and geocode in parallel
+      // Step 4: Fetch text recommendations in parallel (fast, no image generation)
       async let activitiesTask = recommendationService.fetchActivities(weather: weather.current)
       async let foodsTask = recommendationService.fetchFoods(weather: weather.current)
 
-      // Wait for both recommendation calls and geocode concurrently
+      // Wait for both recommendation calls concurrently
       activities = (try? await activitiesTask) ?? []
       foods = (try? await foodsTask) ?? []
 
       // Step 5: Reverse geocode for location name
       await reverseGeocode(location)
 
+      // Step 6: Generate images asynchronously in the background
+      // Recommendations are already visible with SF Symbol placeholders.
+      // Images will appear as they're generated, updating the UI progressively.
+      generateImagesInBackground()
+
     } catch {
       self.error = error
       AppLogger.weatherError(error)
+    }
+  }
+
+  // MARK: - Private: Background Image Generation
+
+  /// Generates images for all activities and foods that have an imagePrompt.
+  /// Each image is generated independently — if one fails, others still succeed.
+  /// The UI updates progressively as each image completes.
+  private func generateImagesInBackground() {
+    // Cancel any previous generation task to avoid overlapping/looping
+    imageGenerationTask?.cancel()
+    
+    let activitiesToGenerate = activities.filter { $0.imagePrompt != nil && $0.generatedImage == nil }
+    let foodsToGenerate = foods.filter { $0.imagePrompt != nil && $0.generatedImage == nil }
+    
+    print("🖼️ [ImageGen] Starting background image generation: \(activitiesToGenerate.count) activities, \(foodsToGenerate.count) foods need images")
+
+    imageGenerationTask = Task(priority: .background) {
+      // Generate activity images sequentially to avoid overwhelming the system
+      for index in activities.indices {
+        if Task.isCancelled { return }
+        
+        let activity = activities[index]
+        guard let prompt = activity.imagePrompt, activity.generatedImage == nil else { continue }
+        
+        if let image = await ImagePlaygroundManager.generateImage(prompt: prompt) {
+          if !Task.isCancelled {
+            await MainActor.run {
+              if index < self.activities.count {
+                self.activities[index].generatedImage = image
+                print("🖼️ [ImageGen] Activity[\(index)] '\(self.activities[index].title)' image updated!")
+              }
+            }
+          }
+        }
+      }
+
+      // Generate food images sequentially
+      for index in foods.indices {
+        if Task.isCancelled { return }
+        
+        let food = foods[index]
+        guard let prompt = food.imagePrompt, food.generatedImage == nil else { continue }
+        
+        if let image = await ImagePlaygroundManager.generateImage(prompt: prompt) {
+          if !Task.isCancelled {
+            await MainActor.run {
+              if index < self.foods.count {
+                self.foods[index].generatedImage = image
+                print("🖼️ [ImageGen] Food[\(index)] '\(self.foods[index].title)' image updated!")
+              }
+            }
+          }
+        }
+      }
     }
   }
 

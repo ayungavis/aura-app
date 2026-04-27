@@ -25,7 +25,9 @@ struct RecommendedActivities: View {
             ActivityItem(
               title: item.title,
               subtitle: item.subtitle,
-              systemImageName: item.imageName
+              systemImageName: item.imageName,
+              imageURL: item.imageURL,
+              generatedImage: item.generatedImage
             )
             .fixedSize()
             .padding(.leading, activities.first?.id == item.id ? 20 : 0)

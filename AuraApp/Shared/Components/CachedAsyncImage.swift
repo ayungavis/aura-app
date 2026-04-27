@@ -50,7 +50,16 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     private func loadImage() {
         guard let url = url else { return }
         
-        // 1. Check URLCache (Disk/Memory) synchronously
+        // 1. Check if it's a local file URL
+        if url.isFileURL {
+            if let data = try? Data(contentsOf: url),
+               let uiImage = UIImage(data: data) {
+                self.loadedImage = uiImage
+                return
+            }
+        }
+        
+        // 2. Check URLCache (Disk/Memory) synchronously for remote URLs
         let request = URLRequest(url: url)
         if let cachedResponse = URLCache.shared.cachedResponse(for: request),
            let uiImage = UIImage(data: cachedResponse.data) {
@@ -58,7 +67,7 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
             return
         }
         
-        // 2. If not cached, fetch from network
+        // 3. If not cached and not local, fetch from network
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, let response = response, let uiImage = UIImage(data: data) else { return }
             

@@ -24,7 +24,9 @@ struct RecommendedFoods: View {
             ActivityItem(
               title: item.title,
               subtitle: item.subtitle,
-              systemImageName: item.imageName
+              systemImageName: item.imageName,
+              imageURL: item.imageURL,
+              generatedImage: item.generatedImage
             )
             .fixedSize()
             .padding(.leading, foods.first?.id == item.id ? 20 : 0)
