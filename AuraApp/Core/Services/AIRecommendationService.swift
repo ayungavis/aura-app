@@ -144,6 +144,27 @@ class AIRecommendationService: RecommendationServiceProtocol {
 
     return parts.joined(separator: ". ")
   }
+
+  // MARK: - Fetch Fun Fact
+
+  func fetchFunFact(category: String) async throws -> String {
+    let session = LanguageModelSession(instructions: """
+    You are a persuasive and encouraging health and lifestyle advisor in Bali. Your task is to generate a 'fun fact' about a given activity or food category. \
+    The fact should be very persuasive ("hard sell") by highlighting specific health benefits, productivity boosts, or unique advantages of doing/consuming it in the current tropical setting. \
+    For activities, mention how they are perfect for this weather and provide a compelling benefit (e.g., "Doing this regularly can significantly reduce the risk of heart disease"). \
+    For food, emphasize how regular consumption can improve specific health aspects (e.g., "Consuming this regularly can make your vision much sharper"). \
+    Avoid using specific numbers or percentages to keep it sounding authentic and trustworthy. \
+    Keep it to 1-2 sentences max. Use direct and confident language.
+    """)
+
+    print("🤖 [AIRecommendation] Fetching fun fact for: \"\(category)\"")
+
+    let response = try await session.respond(
+      to: "Generate a fun, encouraging fact about '\(category)'.",
+      generating: FunFactResponse.self
+    )
+    return response.content.fact
+  }
 }
 
 // MARK: - @Generable Types (Internal)
@@ -200,6 +221,12 @@ struct FoodsResponse {
   @Guide(description: "A list of 5 food or drink recommendations based on weather")
   @Guide(.count(5))
   var items: [AIFoodItem]
+}
+
+@Generable
+struct FunFactResponse {
+  @Guide(description: "A fun, encouraging fact about the activity or food category. It can be slightly made up but should be grounded in the theme.")
+  var fact: String
 }
 
 // MARK: - SF Symbol Catalogs

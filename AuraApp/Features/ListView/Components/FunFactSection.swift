@@ -7,7 +7,8 @@ import SwiftUI
 
 extension ListView {
     struct FunFactSection: View {
-        let category: String
+        let fact: String?
+        let isLoading: Bool
         @Binding var showFunFactAlert: Bool
         
         var body: some View {
@@ -26,28 +27,26 @@ extension ListView {
                     .buttonStyle(.plain)
                 }
                 
-                Text(funFactForCategory(category))
-                    .font(.custom("InstrumentSans-Regular", size: 12))
-                    .foregroundColor(.primary)
-                    .lineSpacing(4)
+                if isLoading {
+                    VStack(alignment: .leading, spacing: 8) {
+                        SkeletonView().frame(height: 12).frame(maxWidth: .infinity)
+                        SkeletonView().frame(height: 12).frame(width: 200)
+                    }
+                } else if let fact = fact {
+                    Text(fact)
+                        .font(.custom("InstrumentSans-Regular", size: 12))
+                        .foregroundColor(.primary)
+                        .lineSpacing(4)
+                        .transition(.opacity)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)
-        }
-        
-        private func funFactForCategory(_ category: String) -> String {
-            switch category.lowercased() {
-            case "running":
-                return "Running can boost your mood fast. Your body releases endorphins that help you feel good."
-            case "biking":
-                return "Cycling for 30 minutes can burn up to 300 calories and improves heart health."
-            default:
-                return "Outdoor activities can boost your mood and reduce stress significantly."
-            }
+            .animation(.easeInOut, value: isLoading)
         }
     }
 }
 
 #Preview {
-    ListView.FunFactSection(category: "Running", showFunFactAlert: .constant(false))
+    ListView.FunFactSection(fact: "Outdoor activities can boost your mood and reduce stress significantly.", isLoading: false, showFunFactAlert: .constant(false))
 }

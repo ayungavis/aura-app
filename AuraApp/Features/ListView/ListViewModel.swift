@@ -13,28 +13,33 @@ import SwiftUI
 class ListViewModel: ObservableObject {
   @Published var locations: [LocationItem] = []
   @Published var isLoading = false
+  @Published var isFunFactLoading = false
   @Published var error: Error?
+  @Published var funFact: String?
 
   let category: String
   let tripAdvisorCategory: String?
   let latLong: String?
   private let service: TripAdvisorServiceProtocol
+  private let recommendationService: RecommendationServiceProtocol
 
   init(
     category: String,
     tripAdvisorCategory: String? = nil,
     latLong: String? = nil,
-    service: TripAdvisorServiceProtocol = TripAdvisorService()
+    service: TripAdvisorServiceProtocol = TripAdvisorService(),
+    recommendationService: RecommendationServiceProtocol = RecommendationServiceFactory.create()
   ) {
     self.category = category
     self.tripAdvisorCategory = tripAdvisorCategory
     self.latLong = latLong
     self.service = service
+    self.recommendationService = recommendationService
   }
-
   func onAppear() {
     Task {
       await loadLocations()
+      await loadFunFact()
     }
   }
 
@@ -42,6 +47,7 @@ class ListViewModel: ObservableObject {
     error = nil
     Task {
       await loadLocations()
+      await loadFunFact()
     }
   }
 
@@ -91,6 +97,18 @@ class ListViewModel: ObservableObject {
       for await (index, imageUrl) in group {
         locations[index].imageUrl = imageUrl
       }
+    }
+  }
+
+  private func loadFunFact() async {
+    isFunFactLoading = true
+    defer { isFunFactLoading = false }
+
+    do {
+      funFact = try await recommendationService.fetchFunFact(category: category)
+    } catch {
+      AppLogger.placesError("fetchFunFact", error: error)
+      // Fallback or keep nil
     }
   }
 }

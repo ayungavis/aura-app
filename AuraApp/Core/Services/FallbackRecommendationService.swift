@@ -71,6 +71,19 @@ class FallbackRecommendationService: RecommendationServiceProtocol {
     }
   }
 
+  // MARK: - Fetch Fun Fact
+
+  func fetchFunFact(category: String) async throws -> String {
+    switch category.lowercased() {
+    case "running":
+        return "Running in this weather can significantly improve your cardiovascular efficiency and clear your mind instantly."
+    case "biking":
+        return "Biking regularly can meaningfully reduce the risk of heart disease while building incredible core strength."
+    default:
+        return "Engaging in this activity regularly can significantly boost your metabolic rate and is perfect for today's conditions."
+    }
+  }
+
   // MARK: - Activity Recommendations by Weather
 
   private func sunnyActivities(temperature: Double) -> [Activity] {

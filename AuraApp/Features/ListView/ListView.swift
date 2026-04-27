@@ -80,18 +80,11 @@ struct ListView: View {
           ZStack {
             if viewModel.isLoading && viewModel.locations.isEmpty {
               VStack(alignment: .center, spacing: 32) {
-                // Metrics Skeleton
-                HStack(spacing: 24) {
-                    ForEach(0..<3) { _ in
-                        SkeletonView()
-                            .frame(width: 60, height: 20)
-                    }
-                }
-                
                 // Fun Fact Skeleton
-                SkeletonView()
-                    .frame(height: 100)
-                    .frame(maxWidth: .infinity)
+                VStack(alignment: .leading, spacing: 8) {
+                    SkeletonView().frame(height: 12).frame(maxWidth: .infinity)
+                    SkeletonView().frame(height: 12).frame(width: 200)
+                }
                 
                 // Places Skeleton
                 VStack(spacing: 20) {
@@ -106,8 +99,7 @@ struct ListView: View {
                 .transition(.opacity)
             } else {
               VStack(alignment: .center, spacing: 32) {
-                MetricsRow()
-                FunFactSection(category: category, showFunFactAlert: $showFunFactAlert)
+                FunFactSection(fact: viewModel.funFact, isLoading: viewModel.isFunFactLoading, showFunFactAlert: $showFunFactAlert)
                 placesSection
               }
               .transition(.opacity)

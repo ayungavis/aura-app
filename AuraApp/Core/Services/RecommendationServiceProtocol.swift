@@ -22,4 +22,9 @@ protocol RecommendationServiceProtocol {
   /// - Parameter weather: The current weather data to base recommendations on.
   /// - Returns: Array of Food models with title, subtitle, and image name.
   func fetchFoods(weather: CurrentWeatherData) async throws -> [Food]
+
+  /// Returns a fun, encouraging fact about an activity or food category.
+  /// - Parameter category: The activity or food category name.
+  /// - Returns: A string containing the fun fact.
+  func fetchFunFact(category: String) async throws -> String
 }
