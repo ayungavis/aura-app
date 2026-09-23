@@ -182,7 +182,7 @@ struct ListView: View {
           .font(.custom("InstrumentSans-Regular", size: 14))
           .foregroundStyle(.secondary)
       } else {
-        VStack(spacing: 8) {
+        LazyVStack(spacing: 8) {
           ForEach(viewModel.places) { place in
             Button {
               selectedPlace = place.mapItem

@@ -11,16 +11,7 @@ extension ListView {
 
     var body: some View {
       HStack(spacing: 16) {
-        // Apple Maps search returns no photos, so the thumbnail is the place's
-        // category symbol. Photos live in the Apple Maps card on tap.
-        Rectangle()
-          .fill(Color(UIColor.systemGray6))
-          .overlay(
-            Image(systemName: place.symbolName)
-              .font(.system(size: 26, weight: .light))
-              .foregroundStyle(.secondary)
-          )
-          .frame(width: 80, height: 80)
+        PlaceThumbnail(place: place)
 
         VStack(alignment: .leading, spacing: 4) {
           Text(place.name)
