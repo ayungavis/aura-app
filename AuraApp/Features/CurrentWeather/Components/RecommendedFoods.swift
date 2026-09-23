@@ -27,7 +27,7 @@ struct RecommendedFoods: View {
 
       ScrollView(.horizontal, showsIndicators: false) {
         Layout(direction: .horizontal, spacing: 12) {
-          ForEach(foods) { item in
+          ForEach(Array(foods.enumerated()), id: \.element.id) { index, item in
             ActivityItem(
               title: item.title,
               subtitle: item.subtitle,
@@ -35,7 +35,8 @@ struct RecommendedFoods: View {
               imageURL: item.imageURL,
               generatedImage: item.generatedImage,
               isGenerationFailed: item.isGenerationFailed,
-              onGenerate: generateAction(for: item)
+              onGenerate: generateAction(for: item),
+              paletteIndex: index + 3
             )
             .matchedTransitionSource(id: item.title, in: navigationNamespace)
             .fixedSize()
