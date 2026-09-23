@@ -6,6 +6,7 @@
 //  Now accepts dynamic data from the ViewModel instead of hardcoded mock data.
 //
 
+import ImagePlayground
 import SwiftUI
 
 struct RecommendedActivities: View {
@@ -15,7 +16,11 @@ struct RecommendedActivities: View {
   /// Activity recommendations from the ViewModel.
   /// Can be AI-generated or rule-based fallback — this view doesn't care which.
   let activities: [Activity]
-  let latLong: String?
+  let searchCenter: SearchCenter?
+  var onImageGenerated: (UUID, UIImage) -> Void = { _, _ in }
+
+  @Environment(\.supportsImagePlayground) private var supportsImagePlayground
+  @State private var imageRequest: CardImageRequest?
 
   var body: some View {
     Layout(direction: .vertical, spacing: 16) {
@@ -30,7 +35,8 @@ struct RecommendedActivities: View {
               systemImageName: item.imageName,
               imageURL: item.imageURL,
               generatedImage: item.generatedImage,
-              isGenerationFailed: item.isGenerationFailed
+              isGenerationFailed: item.isGenerationFailed,
+              onGenerate: generateAction(for: item)
             )
             .matchedTransitionSource(id: item.title, in: navigationNamespace)
             .fixedSize()
@@ -42,13 +48,21 @@ struct RecommendedActivities: View {
                 imageURL: item.imageURL,
                 imageData: item.generatedImage?.pngData(),
                 imageName: item.imageName,
-                tripAdvisorCategory: "attractions",
-                latLong: latLong
+                placeKind: .activity,
+                searchCenter: searchCenter
               ))
             }
           }
         }
       }
     }
+    .cardImagePlaygroundSheet(request: $imageRequest, onImageGenerated: onImageGenerated)
+  }
+
+  private func generateAction(for item: Activity) -> (() -> Void)? {
+    guard item.needsManualImageGeneration(supportsImagePlayground: supportsImagePlayground),
+          let prompt = item.imagePrompt
+    else { return nil }
+    return { imageRequest = CardImageRequest(id: item.id, prompt: prompt) }
   }
 }

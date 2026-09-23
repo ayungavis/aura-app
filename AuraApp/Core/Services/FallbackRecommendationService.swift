@@ -18,7 +18,7 @@ class FallbackRecommendationService: RecommendationServiceProtocol {
   // Groups weather conditions into broad categories, then returns
   // curated recommendations for each category.
 
-  func fetchActivities(weather: CurrentWeatherData) async throws -> [Activity] {
+  func fetchActivities(weather: CurrentWeatherData, place: String?) async throws -> [Activity] {
     let condition = weather.condition
 
     switch condition {
@@ -47,7 +47,7 @@ class FallbackRecommendationService: RecommendationServiceProtocol {
 
   // MARK: - Fetch Foods
 
-  func fetchFoods(weather: CurrentWeatherData) async throws -> [Food] {
+  func fetchFoods(weather: CurrentWeatherData, place: String?) async throws -> [Food] {
     let condition = weather.condition
 
     switch condition {

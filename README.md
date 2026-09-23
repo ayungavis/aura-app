@@ -6,6 +6,57 @@
 
 A weather activity recommendation app built with SwiftUI. Shows current weather, hourly forecasts, and suggests activities and food based on real-time conditions — powered by on-device Apple Intelligence when available.
 
+## Project layout
+
+```
+AuraApp/       the app target
+AuraShared/    code compiled into BOTH the app and the widget
+AuraWidget/    the Home Screen widget extension
+```
+
+`AuraShared` exists because the widget needs the weather models, the cache and
+the service layer. Both targets reference it as a synchronized folder, so adding
+a file there puts it in both automatically.
+
+## Weather data
+
+Weather resolves through `WeatherServiceRouter`:
+
+1. the shared on-disk cache (15 minute TTL, also read by the widget),
+2. **Apple WeatherKit**,
+3. **Open-Meteo**, if WeatherKit is unavailable.
+
+The router remembers a permanent WeatherKit failure for the rest of the session
+so a misconfigured entitlement does not cost a failing round trip on every
+refresh.
+
+### Enabling WeatherKit
+
+The code and entitlements are in place, but WeatherKit will fail until the App ID
+is provisioned. In the [developer portal](https://developer.apple.com/account):
+
+1. **Certificates, IDs & Profiles → Identifiers →** `com.babono.AuraApp`
+2. Enable **WeatherKit**, and enable the **App Groups** capability with
+   `group.com.babono.AuraApp`.
+3. Do the same for `com.babono.AuraApp.AuraWidget`.
+4. Enable WeatherKit for the app in **App Store Connect → your app → Services**.
+5. Regenerate provisioning profiles (or let Xcode's automatic signing do it).
+
+Until that is done the app silently serves Open-Meteo, which is the intended
+behaviour — but note the footer attribution changes accordingly.
+
+> Apple **requires** the Apple Weather mark and a link to their legal page on any
+> screen showing WeatherKit data. That is `WeatherAttributionView`; do not remove
+> it.
+
+## Widget
+
+`AuraWidget` ships small and medium Home Screen sizes. The app writes a compact
+`WidgetWeatherSnapshot` to the shared App Group after every successful fetch and
+the widget renders from it, refetching for the last known coordinate only when
+the snapshot goes stale. That keeps the extension off the location subsystem and
+off the WeatherKit quota.
+
 ## Requirements
 
 - Xcode 17+
@@ -21,25 +72,7 @@ git clone https://github.com/ayungavis/aura-app.git
 cd aura-app
 ```
 
-### 2. Configure API Key
-
-The app requires a TripAdvisor API key for place search and details.
-
-```bash
-cp AuraApp/Example.xcconfig AuraApp/Config.xcconfig
-```
-
-Edit `AuraApp/Config.xcconfig` and replace the placeholder:
-
-```
-TRIPADVISOR_API_KEY = your_actual_key_here
-```
-
-Get a key at [tripadvisor.com/developers](https://tripadvisor.com/developers).
-
-`Config.xcconfig` is gitignored — your key stays local.
-
-### 3. Open & Run
+### 2. Open & Run
 
 ```bash
 open AuraApp.xcodeproj
@@ -47,7 +80,7 @@ open AuraApp.xcodeproj
 
 Select the **AuraApp** scheme and run on a simulator or device. The app requests location access on first launch.
 
-### 4. Build from Terminal
+### 3. Build from Terminal
 
 ```bash
 xcodebuild build -project AuraApp.xcodeproj -scheme AuraApp \
@@ -72,10 +105,9 @@ SplashScreen (3s) → CurrentWeatherView → ListView → DetailView
 AuraApp/
 ├── App/                    # Entry point, router, root view, config
 ├── Core/
-│   ├── Models/             # Shared data models
-│   ├── Services/           # Network services (protocols + implementations)
-│   ├── Extensions/         # Swift extensions
-│   └── Storages/           # Caching layer
+│   ├── Models/             # App-only data models
+│   ├── Services/           # Places + recommendation services
+│   └── Extensions/         # Swift extensions
 ├── Features/
 │   ├── CurrentWeather/     # Main weather screen
 │   │   ├── Components/     # Reusable UI components
@@ -87,8 +119,15 @@ AuraApp/
 │   ├── DetailView/         # Place details
 │   └── SplashScreen/       # Animated splash
 └── Shared/
-    ├── Components/         # Cross-feature UI components
-    └── Utilities/          # Logger, helpers
+    └── Components/         # Cross-feature UI components
+
+AuraShared/                 # compiled into the app AND the widget
+├── Models/                 # WeatherData
+├── Services/               # WeatherKit, Open-Meteo, the router
+├── Storage/                # LocalCache, WidgetDataStore
+└── Utilities/              # AppLogger
+
+AuraWidget/                 # Home Screen widget extension
 ```
 
 ### MVVM Pattern
@@ -96,7 +135,7 @@ AuraApp/
 Each feature follows the same structure:
 
 ```
-View (SwiftUI)  →  ViewModel (@MainActor, ObservableObject)  →  Service (Protocol)
+View (SwiftUI)  →  ViewModel (@MainActor, @Observable)  →  Service (Protocol)
 ```
 
 **View** — renders state, handles user interaction only. Owns the ViewModel via `@StateObject`.
@@ -145,9 +184,9 @@ Both return `[Activity]` and `[Food]` models with SF Symbol icon names. The fact
 
 | Data                           | Source                                | Caching           |
 | ------------------------------ | ------------------------------------- | ----------------- |
-| Weather (current + hourly)     | Open Meteo API (via OpenMeteoSdk)     | 15-min disk cache |
-| Place search                   | TripAdvisor Content API               | 24h disk cache    |
-| Place details, photos, reviews | TripAdvisor Content API               | 24h disk cache    |
+| Weather (current + hourly)     | Apple WeatherKit, Open-Meteo fallback | 15-min disk cache |
+| Place search                   | Apple Maps (`MKLocalSearch`)          | None              |
+| Place details, photos, reviews | Apple Maps place card                 | None              |
 | Location name                  | CLGeocoder (reverse geocode)          | None              |
 | Activity/food recommendations  | Apple Foundation Models or rule-based | None (stateless)  |
 

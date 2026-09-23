@@ -2,68 +2,86 @@
 //  CurrentWeatherViewModel.swift
 //  AuraApp
 //
-//  ViewModel for the main weather screen. Follows the MVVM pattern:
-//  - Fetches weather data from the service layer
-//  - Publishes state updates that the View observes
-//  - Generates activity and food recommendations based on weather
-//  - Asynchronously generates images via Image Playground after recommendations load
+//  ViewModel for the main weather screen.
 //
-//  All @Published properties automatically trigger UI updates when they change.
-//  @MainActor ensures everything runs on the main thread (UI thread).
+//  Uses `@Observable` rather than `ObservableObject`: SwiftUI then tracks reads
+//  per-property, so updating one generated image invalidates only the views that
+//  read that image instead of re-rendering the whole screen. That matters here
+//  because image generation writes to `activities`/`foods` a dozen times while
+//  the user is scrolling.
 //
 
-import Combine
 import CoreLocation
+import Observation
 import SwiftUI
+import WidgetKit
 
 @MainActor
-class CurrentWeatherViewModel: ObservableObject {
+@Observable
+final class CurrentWeatherViewModel {
 
-  // MARK: - Published State
-  // These properties drive the UI. When any of them change, SwiftUI re-renders
-  // the views that read them.
+  // MARK: - Observed State
 
-  @Published var currentWeather: CurrentWeatherData?
-  @Published var hourlyForecast: [Forecast] = []
-  @Published var activities: [Activity] = []
-  @Published var foods: [Food] = []
-  @Published var isLoading = false
-  @Published var error: Error?
-  @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
-  @Published var locationName: String?
+  var currentWeather: CurrentWeatherData?
+  var hourlyForecast: [Forecast] = []
+  var activities: [Activity] = []
+  var foods: [Food] = []
+  var isLoading = false
+  var error: Error?
+  var authorizationStatus: CLAuthorizationStatus = .notDetermined
+  var locationName: String?
 
-  var latLongString: String? {
-    guard let location = lastFetchLocation else { return nil }
-    return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+  /// Which backend served the data on screen — drives which attribution shows.
+  var weatherSource: WeatherSource?
+
+  /// True once a real fetch has completed, so the UI can tell "still loading"
+  /// apart from "loaded, but empty".
+  var hasLoadedOnce = false
+
+  /// Location is off for Aura, so no weather can load until the user changes it
+  /// in Settings. Granting it there re-triggers a fetch via `onAuthChange`.
+  var isLocationDenied: Bool {
+    authorizationStatus == .denied || authorizationStatus == .restricted
   }
-  
-  private var lastFetchLocation: CLLocation?
-  private var imageGenerationTask: Task<Void, Never>?
+
+  /// Where nearby-place searches are centred.
+  var searchCenter: SearchCenter? {
+    guard let location = lastFetchLocation else { return nil }
+    return SearchCenter(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+  }
+
+  // MARK: - Untracked State
+  // Marked ignored so mutating them never invalidates a view.
+
+  @ObservationIgnored private var lastFetchLocation: CLLocation?
+  @ObservationIgnored private var imageGenerationTask: Task<Void, Never>?
+  @ObservationIgnored private var geocodeCache: [String: GeocodedPlace] = [:]
+  /// e.g. "Kuta, Bali, Indonesia" — tells the recommendation prompts where the user is.
+  @ObservationIgnored private var placeDescription: String?
 
   // MARK: - Dependencies
-  // Services are injected via protocols for testability.
-  // Default values use the real implementations.
 
-  private let weatherService: WeatherServiceProtocol
-  private let locationManager: LocationManagerProtocol
-  private let recommendationService: RecommendationServiceProtocol
+  @ObservationIgnored private let weatherService: WeatherServiceProtocol
+  @ObservationIgnored private let locationManager: LocationManagerProtocol
+  @ObservationIgnored private let recommendationService: RecommendationServiceProtocol
 
   init(
     weatherService: WeatherServiceProtocol? = nil,
     locationManager: LocationManagerProtocol? = nil,
     recommendationService: RecommendationServiceProtocol? = nil
   ) {
-    self.weatherService = weatherService ?? (
-      OpenMeteoWeatherService.shared as WeatherServiceProtocol
-    )
+    // Router = shared cache → WeatherKit → Open-Meteo fallback.
+    self.weatherService = weatherService ?? WeatherServiceRouter.shared
     self.locationManager = locationManager ?? LocationManager()
-    // Factory picks AI or fallback based on device capabilities
     self.recommendationService = recommendationService ?? RecommendationServiceFactory.create()
     setupCallbacks()
   }
 
-  // MARK: - Public Methods
-  // These are the only methods the View calls directly.
+  deinit {
+    imageGenerationTask?.cancel()
+  }
+
+  // MARK: - Public
 
   func onAppear() {
     locationManager.requestLocation()
@@ -71,79 +89,66 @@ class CurrentWeatherViewModel: ObservableObject {
 
   func retry() {
     error = nil
+    // Clear the throttle so an explicit retry always refetches.
+    lastFetchLocation = nil
     locationManager.requestLocation()
   }
 
-  // MARK: - Private: Location Callbacks
+  // MARK: - Location Callbacks
 
   private func setupCallbacks() {
-    // When location updates, fetch weather for that location
     locationManager.onLocationUpdate = { [weak self] location in
       Task { @MainActor in
         await self?.fetchWeather(for: location)
       }
     }
-    // Track authorization status so the UI can show permission prompts
     locationManager.onAuthChange = { [weak self] status in
       self?.authorizationStatus = status
     }
   }
 
-  // MARK: - Private: Weather Fetching
+  // MARK: - Weather Fetching
 
   private func fetchWeather(for location: CLLocation) async {
-    // Avoid redundant fetches if location hasn't changed significantly (e.g., 500 meters)
+    // CoreLocation re-delivers near-identical fixes; skip sub-500m churn.
     if let lastLocation = lastFetchLocation, location.distance(from: lastLocation) < 500 {
-      print("📍 [ViewModel] Skipping weather fetch, location hasn't changed significantly")
       return
     }
-    
+
     isLoading = true
     error = nil
     lastFetchLocation = location
-    defer { isLoading = false }
+    defer {
+      isLoading = false
+      hasLoadedOnce = true
+    }
 
     do {
-      // Step 1: Fetch weather data from Open Meteo API
+      // The place name is needed by the recommendation prompts; look it up
+      // while the weather loads.
+      async let geocoding: Void = reverseGeocode(location)
       let weather = try await weatherService.fetchWeatherData(for: location)
+      await geocoding
 
-      // Step 2: Update current weather state
       currentWeather = weather.current
+      weatherSource = weather.source
+      hourlyForecast = Self.buildForecast(from: weather)
 
-      // Step 3: Build hourly forecast — include current hour, label it "Now"
-      let now = Date()
-      let timezone = TimeZone(secondsFromGMT: weather.timezoneOffset) ?? .current
-      var calendar = Calendar.current
-      calendar.timeZone = timezone
-      let startOfHour = calendar.date(from: calendar.dateComponents([.year, .month, .day, .hour], from: now))!
-      
-      var hourStyle = Date.FormatStyle.dateTime.hour()
-      hourStyle.timeZone = timezone
-      
-      hourlyForecast = weather.hourly.filter { $0.date >= startOfHour }.enumerated().map { index, hour in
-        Forecast(
-          time: index == 0 ? "Now" : hour.date.formatted(hourStyle),
-          systemImage: hour.condition.systemImageName(isDay: weather.current.isDay),
-          temperature: "\(Int(hour.temperature.rounded()))°",
-          caption: nil,
-          precipitationPercentage: hour.precipitationProbability
-        )
-      }
-
-      // Step 4: Fetch text recommendations in parallel (fast, no image generation)
-      async let activitiesTask = recommendationService.fetchActivities(weather: weather.current)
-      async let foodsTask = recommendationService.fetchFoods(weather: weather.current)
-
-      // Wait for both recommendation calls concurrently
+      // Text recommendations run concurrently — neither depends on the other.
+      async let activitiesTask = recommendationService.fetchActivities(weather: weather.current, place: placeDescription)
+      async let foodsTask = recommendationService.fetchFoods(weather: weather.current, place: placeDescription)
       activities = (try? await activitiesTask) ?? []
       foods = (try? await foodsTask) ?? []
 
-      // Step 5: Reverse geocode for location name
-      await reverseGeocode(location)
+      // Hand the widget the freshest snapshot we have.
+      WidgetDataStore.save(
+        weather: weather,
+        locationName: locationName,
+        coordinate: location.coordinate
+      )
+      WidgetCenter.shared.reloadTimelines(ofKind: WidgetDataStore.widgetKind)
 
-      // Step 6: Generate images asynchronously in the background
-      // Recommendations are already visible with SF Symbol placeholders.
-      // Images will appear as they're generated, updating the UI progressively.
+      // Images fill in progressively behind the SF Symbol placeholders.
       generateImagesInBackground()
 
     } catch {
@@ -152,94 +157,151 @@ class CurrentWeatherViewModel: ObservableObject {
     }
   }
 
-  // MARK: - Private: Background Image Generation
+  /// Builds the hourly strip, labelling the current hour "Now".
+  private static func buildForecast(from weather: WeatherResponse) -> [Forecast] {
+    let timezone = TimeZone(secondsFromGMT: weather.timezoneOffset) ?? .current
+    var calendar = Calendar.current
+    calendar.timeZone = timezone
 
-  /// Generates images for all activities and foods that have an imagePrompt.
-  /// Each image is generated independently — if one fails, others still succeed.
-  /// The UI updates progressively as each image completes.
+    guard let startOfHour = calendar.date(
+      from: calendar.dateComponents([.year, .month, .day, .hour], from: Date())
+    ) else { return [] }
+
+    var hourStyle = Date.FormatStyle.dateTime.hour()
+    hourStyle.timeZone = timezone
+
+    return weather.hourly
+      .filter { $0.date >= startOfHour }
+      .enumerated()
+      .map { index, hour in
+        Forecast(
+          time: index == 0 ? "Now" : hour.date.formatted(hourStyle),
+          systemImage: hour.condition.systemImageName(isDay: hour.isDay ?? weather.current.isDay),
+          temperature: "\(Int(hour.temperature.rounded()))°",
+          caption: nil,
+          precipitationPercentage: hour.precipitationProbability
+        )
+      }
+  }
+
+  // MARK: - Background Image Generation
+
+  /// Generates images for every recommendation that asked for one. Each runs
+  /// independently — one failure does not block the rest — and the UI updates as
+  /// each completes.
   private func generateImagesInBackground() {
-    // Cancel any previous generation task to avoid overlapping/looping
     imageGenerationTask?.cancel()
-    
-    let activitiesToGenerate = activities.filter { $0.imagePrompt != nil && $0.generatedImage == nil }
-    let foodsToGenerate = foods.filter { $0.imagePrompt != nil && $0.generatedImage == nil }
-    
-    print("🖼️ [ImageGen] Starting background image generation: \(activitiesToGenerate.count) activities, \(foodsToGenerate.count) foods need images")
 
-    imageGenerationTask = Task(priority: .background) {
-      // Generate activity images sequentially to avoid overwhelming the system
-      for index in activities.indices {
+    // iOS 27 deprecated `ImageCreator`; generation now only happens through the
+    // user-driven Image Playground sheet, so the cards offer a Generate button.
+    guard Self.supportsBackgroundImageGeneration else { return }
+
+    imageGenerationTask = Task(priority: .utility) { [weak self] in
+      guard let self else { return }
+
+      for index in await self.activities.indices {
         if Task.isCancelled { return }
-        
-        let activity = activities[index]
-        guard let prompt = activity.imagePrompt, activity.generatedImage == nil else { continue }
-        
-        print("🖼️ [ImageGen] Generating Activity[\(index)] '\(activity.title)' with prompt: \"\(prompt)\"")
-        
-        if let image = await ImagePlaygroundManager.generateImage(prompt: prompt) {
-          if !Task.isCancelled {
-            await MainActor.run {
-              if index < self.activities.count {
-                self.activities[index].generatedImage = image
-                print("🖼️ [ImageGen] Activity[\(index)] '\(self.activities[index].title)' image updated!")
-              }
-            }
-          }
-        } else {
-          // If generation failed after retries
-          if !Task.isCancelled {
-            await MainActor.run {
-              if index < self.activities.count {
-                self.activities[index].isGenerationFailed = true
-                print("🖼️ [ImageGen] Activity[\(index)] '\(self.activities[index].title)' generation failed permanently.")
-              }
-            }
-          }
-        }
+        await self.generateActivityImage(at: index)
       }
 
-      // Generate food images sequentially
-      for index in foods.indices {
+      for index in await self.foods.indices {
         if Task.isCancelled { return }
-        
-        let food = foods[index]
-        guard let prompt = food.imagePrompt, food.generatedImage == nil else { continue }
-        
-        print("🖼️ [ImageGen] Generating Food[\(index)] '\(food.title)' with prompt: \"\(prompt)\"")
-        
-        if let image = await ImagePlaygroundManager.generateImage(prompt: prompt) {
-          if !Task.isCancelled {
-            await MainActor.run {
-              if index < self.foods.count {
-                self.foods[index].generatedImage = image
-                print("🖼️ [ImageGen] Food[\(index)] '\(self.foods[index].title)' image updated!")
-              }
-            }
-          }
-        } else {
-          // If generation failed after retries
-          if !Task.isCancelled {
-            await MainActor.run {
-              if index < self.foods.count {
-                self.foods[index].isGenerationFailed = true
-                print("🖼️ [ImageGen] Food[\(index)] '\(self.foods[index].title)' generation failed permanently.")
-              }
-            }
-          }
-        }
+        await self.generateFoodImage(at: index)
       }
     }
   }
 
-  // MARK: - Private: Reverse Geocoding
-  // Converts GPS coordinates into a human-readable location name.
+  /// `ImageCreator` (programmatic generation) is deprecated from iOS 27 and
+  /// fails at runtime there.
+  static var supportsBackgroundImageGeneration: Bool {
+    if #available(iOS 27, *) { false } else { true }
+  }
 
+  /// Stores an image the user created via the Image Playground sheet.
+  func setGeneratedImage(for id: UUID, image: UIImage) {
+    if let index = activities.firstIndex(where: { $0.id == id }) {
+      activities[index].generatedImage = image
+      activities[index].isGenerationFailed = false
+    } else if let index = foods.firstIndex(where: { $0.id == id }) {
+      foods[index].generatedImage = image
+      foods[index].isGenerationFailed = false
+    }
+  }
+
+  private func generateActivityImage(at index: Int) async {
+    guard index < activities.count,
+          let prompt = activities[index].imagePrompt,
+          activities[index].generatedImage == nil
+    else { return }
+
+    let image = await ImagePlaygroundManager.generateImage(prompt: prompt)
+    guard !Task.isCancelled, index < activities.count else { return }
+
+    if let image {
+      activities[index].generatedImage = image
+    } else {
+      activities[index].isGenerationFailed = true
+    }
+  }
+
+  private func generateFoodImage(at index: Int) async {
+    guard index < foods.count,
+          let prompt = foods[index].imagePrompt,
+          foods[index].generatedImage == nil
+    else { return }
+
+    let image = await ImagePlaygroundManager.generateImage(prompt: prompt)
+    guard !Task.isCancelled, index < foods.count else { return }
+
+    if let image {
+      foods[index].generatedImage = image
+    } else {
+      foods[index].isGenerationFailed = true
+    }
+  }
+
+  // MARK: - Reverse Geocoding
+
+  /// CLGeocoder is server-backed and aggressively rate limited, so results are
+  /// memoised per ~1km cell for the lifetime of the ViewModel.
   private func reverseGeocode(_ location: CLLocation) async {
-    let geocoder = CLGeocoder()
-    if let placemarks = try? await geocoder.reverseGeocodeLocation(location) {
-      locationName = placemarks.first?.locality
-        ?? placemarks.first?.administrativeArea
-        ?? "Unknown"
+    let key = String(
+      format: "%.2f,%.2f",
+      location.coordinate.latitude,
+      location.coordinate.longitude
+    )
+
+    if let cached = geocodeCache[key] {
+      apply(cached)
+      return
     }
+
+    guard let placemark = try? await CLGeocoder().reverseGeocodeLocation(location).first else {
+      placeDescription = nil
+      return
+    }
+
+    // Deduplicated, since locality and area are often the same ("Singapore").
+    var parts: [String] = []
+    for part in [placemark.locality, placemark.administrativeArea, placemark.country] {
+      if let part, !parts.contains(part) { parts.append(part) }
+    }
+
+    let place = GeocodedPlace(
+      name: placemark.locality ?? placemark.administrativeArea ?? "Unknown",
+      description: parts.isEmpty ? nil : parts.joined(separator: ", ")
+    )
+    geocodeCache[key] = place
+    apply(place)
   }
+
+  private func apply(_ place: GeocodedPlace) {
+    locationName = place.name
+    placeDescription = place.description
+  }
+}
+
+private struct GeocodedPlace {
+  let name: String
+  let description: String?
 }

@@ -6,6 +6,7 @@
 //  Matches the "List Page" wireframe design.
 //
 
+import MapKit
 import SwiftUI
 
 struct ListView: View {
@@ -15,26 +16,31 @@ struct ListView: View {
   let initialImage: UIImage?
   let imageURL: URL?
   let imageName: String?
-  let tripAdvisorCategory: String?
-  let latLong: String?
   let navigationNamespace: Namespace.ID
 
   // MARK: - State
 
-  @StateObject private var viewModel: ListViewModel
+  @State private var viewModel: ListViewModel
   @State private var showFunFactAlert = false
   @State private var isTransitioning = false
-  @Namespace private var animation
+  /// The place whose Apple Maps card is showing.
+  @State private var selectedPlace: MKMapItem?
 
-  init(category: String, initialImage: UIImage? = nil, imageURL: URL? = nil, imageName: String? = nil, tripAdvisorCategory: String? = nil, latLong: String? = nil, navigationNamespace: Namespace.ID) {
+  init(
+    category: String,
+    initialImage: UIImage? = nil,
+    imageURL: URL? = nil,
+    imageName: String? = nil,
+    placeKind: PlaceKind = .activity,
+    searchCenter: SearchCenter? = nil,
+    navigationNamespace: Namespace.ID
+  ) {
     self.category = category
     self.initialImage = initialImage
     self.imageURL = imageURL
     self.imageName = imageName
-    self.tripAdvisorCategory = tripAdvisorCategory
-    self.latLong = latLong
     self.navigationNamespace = navigationNamespace
-    _viewModel = StateObject(wrappedValue: ListViewModel(category: category, tripAdvisorCategory: tripAdvisorCategory, latLong: latLong))
+    _viewModel = State(wrappedValue: ListViewModel(category: category, placeKind: placeKind, searchCenter: searchCenter))
   }
 
   // MARK: - Body
@@ -78,7 +84,7 @@ struct ListView: View {
 
           // Content Section
           ZStack {
-            if viewModel.isLoading && viewModel.locations.isEmpty {
+            if viewModel.isLoading && viewModel.places.isEmpty {
               VStack(alignment: .center, spacing: 32) {
                 // Fun Fact Skeleton
                 VStack(alignment: .leading, spacing: 8) {
@@ -94,7 +100,7 @@ struct ListView: View {
                 }
               }
               .transition(.opacity)
-            } else if let error = viewModel.error, viewModel.locations.isEmpty {
+            } else if let error = viewModel.error, viewModel.places.isEmpty {
               listErrorView(error)
                 .transition(.opacity)
             } else {
@@ -107,8 +113,6 @@ struct ListView: View {
           }
           .animation(.easeInOut(duration: 0.4), value: viewModel.isLoading)
 
-          FooterTripAdvisor()
-
           Spacer(minLength: 40)
         }
         .padding(.horizontal)
@@ -116,6 +120,14 @@ struct ListView: View {
       .scrollDisabled(isTransitioning)
     }
     .overlay(FunFactAlert(showFunFactAlert: $showFunFactAlert))
+    // Apple's own place card: photos, ratings, hours, call and directions.
+    .mapItemDetailSheet(
+      isPresented: Binding(
+        get: { selectedPlace != nil },
+        set: { if !$0 { selectedPlace = nil } }
+      ),
+      item: selectedPlace
+    )
     .task {
       viewModel.onAppear()
     }
@@ -165,25 +177,20 @@ struct ListView: View {
       Text("Recommended places")
         .font(.custom("InstrumentSerif-Regular", size: 28))
 
-      VStack(spacing: 8) {
-        ForEach(viewModel.locations) { location in
-          NavigationLink(destination: DetailView(locationId: location.locationId, distance: location.distance, initialImageUrl: location.imageUrl, animation: animation)) {
-            PlaceRow(location: location, animation: animation)
-          }
-          .buttonStyle(.plain)
-          .simultaneousGesture(TapGesture().onEnded {
-            // Lock scrolling immediately on tap
-            isTransitioning = true
-
-            // Safety Timeout: If navigation fails to trigger, unlock after 1.5s
-            Task {
-              try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s
-              // Only reset if we haven't already navigated away
-              if isTransitioning {
-                isTransitioning = false
-              }
+      if viewModel.places.isEmpty {
+        Text("No places found nearby. Try another suggestion.")
+          .font(.custom("InstrumentSans-Regular", size: 14))
+          .foregroundStyle(.secondary)
+      } else {
+        VStack(spacing: 8) {
+          ForEach(viewModel.places) { place in
+            Button {
+              selectedPlace = place.mapItem
+            } label: {
+              PlaceRow(place: place)
             }
-          })
+            .buttonStyle(.plain)
+          }
         }
       }
     }

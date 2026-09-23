@@ -16,6 +16,8 @@ struct ActivityItem: View {
   var imageURL: URL? = nil
   var generatedImage: UIImage? = nil
   var isGenerationFailed: Bool = false
+  /// iOS 27+: shows a Generate button that opens the Image Playground sheet.
+  var onGenerate: (() -> Void)? = nil
 
   var body: some View {
     ZStack {
@@ -25,20 +27,29 @@ struct ActivityItem: View {
         
         VStack(spacing: 8) {
           if generatedImage == nil {
-            HStack(spacing: 4) {
-              if !isGenerationFailed {
+            if let onGenerate {
+              Button(action: onGenerate) {
+                HStack(spacing: 4) {
+                  Image(systemName: "sparkles")
+                    .font(.system(size: 8))
+                  Text("Generate")
+                    .font(.custom("InstrumentSans-Regular", size: 8))
+                }
+                .foregroundStyle(.black.opacity(0.5))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.black.opacity(0.05), in: Capsule())
+              }
+              .buttonStyle(.plain)
+            } else if !isGenerationFailed && CurrentWeatherViewModel.supportsBackgroundImageGeneration {
+              // A failure just leaves the SF Symbol: on devices without Image
+              // Playground an error label on every card reads as a broken app.
+              HStack(spacing: 4) {
                 ProgressView()
                   .scaleEffect(0.6)
                 Text("Generating...")
                   .font(.custom("InstrumentSans-Regular", size: 8))
                   .foregroundStyle(.black.opacity(0.3))
-              } else {
-                Image(systemName: "exclamationmark.triangle")
-                  .font(.system(size: 8))
-                  .foregroundStyle(.black.opacity(0.2))
-                Text("Generation Failed")
-                  .font(.custom("InstrumentSans-Regular", size: 8))
-                  .foregroundStyle(.black.opacity(0.2))
               }
             }
           }

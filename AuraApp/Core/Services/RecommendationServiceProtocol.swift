@@ -14,14 +14,18 @@ import Foundation
 
 protocol RecommendationServiceProtocol {
   /// Returns activity recommendations based on the current weather conditions.
-  /// - Parameter weather: The current weather data to base recommendations on.
+  /// - Parameters:
+  ///   - weather: The current weather data to base recommendations on.
+  ///   - place: Where the user is, e.g. "Kuta, Bali, Indonesia". `nil` if unknown.
   /// - Returns: Array of Activity models with title, subtitle, and image name.
-  func fetchActivities(weather: CurrentWeatherData) async throws -> [Activity]
+  func fetchActivities(weather: CurrentWeatherData, place: String?) async throws -> [Activity]
 
   /// Returns food/drink recommendations based on the current weather conditions.
-  /// - Parameter weather: The current weather data to base recommendations on.
+  /// - Parameters:
+  ///   - weather: The current weather data to base recommendations on.
+  ///   - place: Where the user is, e.g. "Kuta, Bali, Indonesia". `nil` if unknown.
   /// - Returns: Array of Food models with title, subtitle, and image name.
-  func fetchFoods(weather: CurrentWeatherData) async throws -> [Food]
+  func fetchFoods(weather: CurrentWeatherData, place: String?) async throws -> [Food]
 
   /// Returns a fun, encouraging fact about an activity or food category.
   /// - Parameter category: The activity or food category name.

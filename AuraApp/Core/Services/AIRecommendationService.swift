@@ -27,25 +27,24 @@ class AIRecommendationService: RecommendationServiceProtocol {
 
   // Asks the on-device model to suggest activities that match the weather.
 
-  func fetchActivities(weather: CurrentWeatherData) async throws -> [Activity] {
+  func fetchActivities(weather: CurrentWeatherData, place: String?) async throws -> [Activity] {
     let weatherDescription = buildWeatherDescription(weather)
 
     let session = LanguageModelSession(instructions: """
-    You are a weather-aware activity advisor for users in Bali, Indonesia. Given the current weather conditions, \
-    suggest exactly 5 activities that would be appropriate for the weather, time, and Balinese context. \
-    Ensure the activities are diverse and cover Balinese categories (e.g., Beach Clubs, Spas, \
-    Rice Terraces, Surfing, Yoga, Night Markets, or Temples). Avoid suggesting visually \
-    similar activities. \
-    Keep the title of activity to 1-2 words max and it should be common activities that can match tripadvisor \
-    places category and for subtitle also keep it short — 1-3 words each. \
+    You are a weather-aware activity advisor. The user is in \(Self.placeLine(place)). \
+    Given the current weather conditions, suggest exactly 5 activities that suit the weather, \
+    the time of day and what this area is known for. Only suggest things that realistically \
+    exist in this area: no beaches inland, no skiing in the tropics. Make them diverse \
+    (outdoors, wellness, culture, markets, nightlife, or indoor options when the weather is bad) \
+    and avoid visually similar activities. \
+    Keep the title of activity to 1-2 words max and it should be common activities that can be searched for as places on Apple Maps and for subtitle also keep it short — 1-3 words each. \
     For each item, provide a detailed 'imagePrompt' that describes a realistic, \
-    high-fidelity still-life or landscape photo in Bali. Focus on **objects, equipment, and empty scenery** \
-    to avoid any implication of people (e.g., instead of 'surfing', describe 'a surfboard leaning against a palm tree \
-    on a sandy beach'). Focus on Balinese aesthetics: tropical greenery, bamboo architecture, \
-    stone carvings, or coastal vibes. Do not include any people or human figures. \ 
-    Focus on the atmosphere that matches the current condition and time of day. \ 
+    high-fidelity still-life or landscape scene typical of this area. Focus on **objects, equipment, and empty scenery** \
+    to avoid any implication of people (e.g., instead of 'surfing', describe 'a surfboard leaning against a railing \
+    by the sea'). Reflect the local landscape, architecture and climate. Do not include any people or human figures. \
+    Focus on the atmosphere that matches the current condition and time of day. \
     If the local time is after sunset, ensure the 'imagePrompt' explicitly requests a night vibe with warm \
-    ambient lighting, lanterns, or moonlight. If it is daytime, emphasize tropical sunlight. \
+    ambient lighting, lanterns, or moonlight. If it is daytime, emphasize natural sunlight. \
     Do not use verb words or any words that imply human action. Focus on **still objects**.
     """)
 
@@ -70,7 +69,7 @@ class AIRecommendationService: RecommendationServiceProtocol {
       }
     } catch {
       AppLogger.placesError("activities_ai", error: error)
-      return try await FallbackRecommendationService().fetchActivities(weather: weather)
+      return try await FallbackRecommendationService().fetchActivities(weather: weather, place: place)
     }
   }
 
@@ -78,19 +77,20 @@ class AIRecommendationService: RecommendationServiceProtocol {
 
   // Asks the on-device model to suggest foods/drinks that match the weather.
 
-  func fetchFoods(weather: CurrentWeatherData) async throws -> [Food] {
+  func fetchFoods(weather: CurrentWeatherData, place: String?) async throws -> [Food] {
     let weatherDescription = buildWeatherDescription(weather)
 
     let session = LanguageModelSession(instructions: """
-    You are a food and drink advisor in Bali, Indonesia. Given the current weather conditions, \
-    suggest exactly 5 food or drink common categories that would be appealing in a tropical setting. \
-    Prioritize Balinese and Indonesian favorites (e.g., Fried Rice, Grilled Chicken, Satay, Coconut Water, \
-    or Tropical Fruit Bowls). Use descriptive English for the 'imagePrompt' (e.g., 'roasted spicy chicken' \
-    instead of 'ayam betutu') to avoid language errors. Consider comfort, temperature, and Bali's climate. \
+    You are a food and drink advisor. The user is in \(Self.placeLine(place)). \
+    Given the current weather conditions, suggest exactly 5 food or drink common categories \
+    that suit the weather and are easy to find nearby. Prioritize local and regional favorites, \
+    mixed with widely available options. Use common English names (e.g., 'Grilled Chicken' rather \
+    than a local-language dish name) so they work for place search and image prompts. \
+    Consider comfort, temperature and the local climate. \
     Keep names short — 1-2 words max. \
     For each item, provide a detailed 'imagePrompt' that describes a realistic, \
-    high-fidelity photo of the food or drink served in a Balinese setting (e.g., on a wooden \
-    table, with tropical leaves, or in a bamboo cafe). Use ONLY English words in the 'imagePrompt'. \
+    high-fidelity photo of the food or drink served in a setting typical of this area. \
+    Use ONLY English words in the 'imagePrompt'. \
     The lighting should reflect the current time (e.g., warm golden hour light, cozy evening lanterns, or bright midday sun).
     """)
 
@@ -115,8 +115,13 @@ class AIRecommendationService: RecommendationServiceProtocol {
       }
     } catch {
       AppLogger.placesError("foods_ai", error: error)
-      return try await FallbackRecommendationService().fetchFoods(weather: weather)
+      return try await FallbackRecommendationService().fetchFoods(weather: weather, place: place)
     }
+  }
+
+  /// How the prompts name the user's location.
+  private static func placeLine(_ place: String?) -> String {
+    place ?? "an unknown location, so keep suggestions universal"
   }
 
   // MARK: - Weather Description Builder
@@ -149,8 +154,8 @@ class AIRecommendationService: RecommendationServiceProtocol {
 
   func fetchFunFact(category: String) async throws -> String {
     let session = LanguageModelSession(instructions: """
-    You are a persuasive and encouraging health and lifestyle advisor in Bali. Your task is to generate a 'fun fact' about a given activity or food category. \
-    The fact should be very persuasive ("hard sell") by highlighting specific health benefits, productivity boosts, or unique advantages of doing/consuming it in the current tropical setting. \
+    You are a persuasive and encouraging health and lifestyle advisor. Your task is to generate a 'fun fact' about a given activity or food category. \
+    The fact should be very persuasive ("hard sell") by highlighting specific health benefits, productivity boosts, or unique advantages of doing/consuming it in the current weather. \
     For activities, mention how they are perfect for this weather and provide a compelling benefit (e.g., "Doing this regularly can significantly reduce the risk of heart disease"). \
     For food, emphasize how regular consumption can improve specific health aspects (e.g., "Consuming this regularly can make your vision much sharper"). \
     Avoid using specific numbers or percentages to keep it sounding authentic and trustworthy. \

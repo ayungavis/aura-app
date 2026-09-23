@@ -7,19 +7,64 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F3D0235CD30FBE3D89EC2F6 /* AuraWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2A9B4CD0470F913EF5E36875 /* AuraWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2C005540C4FEF95C7C977AFF /* InstrumentSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8B827456857B363F6F29C342 /* InstrumentSans-SemiBold.ttf */; };
+		408F1BE188AD04DE063EC6A4 /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 4BBD63CE9058E1B326316AD4 /* OpenMeteoSdk */; };
+		8C970A0FF769A48B5DF5C704 /* InstrumentSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1025230BDCC3B84B007458F3 /* InstrumentSans-Regular.ttf */; };
+		9B3EADA515B7BAE5846A9332 /* InstrumentSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A44B2213069B55D085ED51E6 /* InstrumentSans-Medium.ttf */; };
 		A20841732F9B4E810089833E /* OpenMeteoSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A20841722F9B4E810089833E /* OpenMeteoSdk */; };
+		DBEBF0ED103C5CBCB5422076 /* InstrumentSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 073EE5CD7CE94DCDF143A2E5 /* InstrumentSans-Bold.ttf */; };
+		FD56FD3D701F5E5FC6F3B699 /* InstrumentSerif-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD16D5A4918C4651EA4FDF1F /* InstrumentSerif-Regular.ttf */; };
+		FEEA9696F00B3FCD6991802E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7452ED7C6C76FEC4062C3A2F /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		EF51C3034AD5A74FE3462A1E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A2663C752F90C9FA008D27B0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0677806A1F4E33FA5504E537;
+			remoteInfo = AuraWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D3B3C5F67FBFB9605091A95E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0F3D0235CD30FBE3D89EC2F6 /* AuraWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		073EE5CD7CE94DCDF143A2E5 /* InstrumentSans-Bold.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "InstrumentSans-Bold.ttf"; path = "AuraApp/Resources/Fonts/InstrumentSans-Bold.ttf"; sourceTree = "<group>"; };
+		1025230BDCC3B84B007458F3 /* InstrumentSans-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "InstrumentSans-Regular.ttf"; path = "AuraApp/Resources/Fonts/InstrumentSans-Regular.ttf"; sourceTree = "<group>"; };
+		2A9B4CD0470F913EF5E36875 /* AuraWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AuraWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7452ED7C6C76FEC4062C3A2F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		8B827456857B363F6F29C342 /* InstrumentSans-SemiBold.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "InstrumentSans-SemiBold.ttf"; path = "AuraApp/Resources/Fonts/InstrumentSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		A2663C7D2F90C9FA008D27B0 /* AuraApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AuraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A44B2213069B55D085ED51E6 /* InstrumentSans-Medium.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "InstrumentSans-Medium.ttf"; path = "AuraApp/Resources/Fonts/InstrumentSans-Medium.ttf"; sourceTree = "<group>"; };
+		CD16D5A4918C4651EA4FDF1F /* InstrumentSerif-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "InstrumentSerif-Regular.ttf"; path = "AuraApp/Resources/Fonts/InstrumentSerif-Regular.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A12A341E79416D1ECF427A83 /* Exceptions for "AuraWidget" folder in "AuraWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0677806A1F4E33FA5504E537 /* AuraWidget */;
+		};
 		A2DF70EB2F97536800B83CB4 /* Exceptions for "AuraApp" folder in "AuraApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Config.xcconfig,
-				Example.xcconfig,
 				Info.plist,
 			);
 			target = A2663C7C2F90C9FA008D27B0 /* AuraApp */;
@@ -32,12 +77,24 @@
 			buildPhase = A2663C792F90C9FA008D27B0 /* Sources */;
 			membershipExceptions = (
 				Config.xcconfig,
-				Example.xcconfig,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5436D2A951D130D734C812B8 /* AuraShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AuraShared;
+			sourceTree = "<group>";
+		};
+		83548E534600DC03BA2ACE62 /* AuraWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A12A341E79416D1ECF427A83 /* Exceptions for "AuraWidget" folder in "AuraWidget" target */,
+			);
+			path = AuraWidget;
+			sourceTree = "<group>";
+		};
 		A2663C7F2F90C9FA008D27B0 /* AuraApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -58,14 +115,47 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D17C6817F66E0F27E4EFEE7C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FEEA9696F00B3FCD6991802E /* Foundation.framework in Frameworks */,
+				408F1BE188AD04DE063EC6A4 /* OpenMeteoSdk in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		16C71401642BFE700ED5FF5D /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				7452ED7C6C76FEC4062C3A2F /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		4BF8AC41C83ADCC4028A3E85 /* WidgetFonts */ = {
+			isa = PBXGroup;
+			children = (
+				073EE5CD7CE94DCDF143A2E5 /* InstrumentSans-Bold.ttf */,
+				A44B2213069B55D085ED51E6 /* InstrumentSans-Medium.ttf */,
+				1025230BDCC3B84B007458F3 /* InstrumentSans-Regular.ttf */,
+				8B827456857B363F6F29C342 /* InstrumentSans-SemiBold.ttf */,
+				CD16D5A4918C4651EA4FDF1F /* InstrumentSerif-Regular.ttf */,
+			);
+			name = WidgetFonts;
+			sourceTree = SOURCE_ROOT;
+		};
 		A2663C742F90C9FA008D27B0 = {
 			isa = PBXGroup;
 			children = (
 				A2663C7F2F90C9FA008D27B0 /* AuraApp */,
 				A2663C7E2F90C9FA008D27B0 /* Products */,
+				5436D2A951D130D734C812B8 /* AuraShared */,
+				83548E534600DC03BA2ACE62 /* AuraWidget */,
+				CDDF8A1D23C53D1F7AC00F7E /* Frameworks */,
+				4BF8AC41C83ADCC4028A3E85 /* WidgetFonts */,
 			);
 			sourceTree = "<group>";
 		};
@@ -73,13 +163,46 @@
 			isa = PBXGroup;
 			children = (
 				A2663C7D2F90C9FA008D27B0 /* AuraApp.app */,
+				2A9B4CD0470F913EF5E36875 /* AuraWidget.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CDDF8A1D23C53D1F7AC00F7E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				16C71401642BFE700ED5FF5D /* iOS */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0677806A1F4E33FA5504E537 /* AuraWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A09D7FFCA2692D3156684F67 /* Build configuration list for PBXNativeTarget "AuraWidget" */;
+			buildPhases = (
+				A1B4BFD9E4D39FF1C2B54A4C /* Sources */,
+				D17C6817F66E0F27E4EFEE7C /* Frameworks */,
+				E6AC943169A1E0F73366358B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5436D2A951D130D734C812B8 /* AuraShared */,
+				83548E534600DC03BA2ACE62 /* AuraWidget */,
+			);
+			name = AuraWidget;
+			packageProductDependencies = (
+				4BBD63CE9058E1B326316AD4 /* OpenMeteoSdk */,
+			);
+			productName = AuraWidget;
+			productReference = 2A9B4CD0470F913EF5E36875 /* AuraWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		A2663C7C2F90C9FA008D27B0 /* AuraApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A2663C882F90C9FB008D27B0 /* Build configuration list for PBXNativeTarget "AuraApp" */;
@@ -87,12 +210,15 @@
 				A2663C792F90C9FA008D27B0 /* Sources */,
 				A2663C7A2F90C9FA008D27B0 /* Frameworks */,
 				A2663C7B2F90C9FA008D27B0 /* Resources */,
+				D3B3C5F67FBFB9605091A95E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				80C2A999C2518DE6B6392562 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				5436D2A951D130D734C812B8 /* AuraShared */,
 				A2663C7F2F90C9FA008D27B0 /* AuraApp */,
 			);
 			name = AuraApp;
@@ -136,6 +262,7 @@
 			projectRoot = "";
 			targets = (
 				A2663C7C2F90C9FA008D27B0 /* AuraApp */,
+				0677806A1F4E33FA5504E537 /* AuraWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -148,9 +275,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E6AC943169A1E0F73366358B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DBEBF0ED103C5CBCB5422076 /* InstrumentSans-Bold.ttf in Resources */,
+				9B3EADA515B7BAE5846A9332 /* InstrumentSans-Medium.ttf in Resources */,
+				8C970A0FF769A48B5DF5C704 /* InstrumentSans-Regular.ttf in Resources */,
+				2C005540C4FEF95C7C977AFF /* InstrumentSans-SemiBold.ttf in Resources */,
+				FD56FD3D701F5E5FC6F3B699 /* InstrumentSerif-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A1B4BFD9E4D39FF1C2B54A4C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A2663C792F90C9FA008D27B0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -160,11 +306,47 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		80C2A999C2518DE6B6392562 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AuraWidget;
+			target = 0677806A1F4E33FA5504E537 /* AuraWidget */;
+			targetProxy = EF51C3034AD5A74FE3462A1E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		2DF7DD860E684E4A50406580 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = AuraWidget/AuraWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U96VKD93X4;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AuraWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Aura Weather";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babono.AuraApp.AuraWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 		A2663C862F90C9FB008D27B0 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
-			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -228,8 +410,6 @@
 		};
 		A2663C872F90C9FB008D27B0 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
-			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -286,8 +466,6 @@
 		};
 		A2663C892F90C9FB008D27B0 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
-			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -299,6 +477,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AuraApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Aura;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.weather";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Aura needs your location to show weather and recommend nearby activities.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -321,14 +501,12 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		A2663C8A2F90C9FB008D27B0 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = A2663C7F2F90C9FA008D27B0 /* AuraApp */;
-			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -340,6 +518,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AuraApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Aura;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.weather";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Aura needs your location to show weather and recommend nearby activities.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -362,13 +542,52 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		BB1D08F933A0A1BF915465C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = AuraWidget/AuraWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = U96VKD93X4;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AuraWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Aura Weather";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babono.AuraApp.AuraWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A09D7FFCA2692D3156684F67 /* Build configuration list for PBXNativeTarget "AuraWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB1D08F933A0A1BF915465C3 /* Release */,
+				2DF7DD860E684E4A50406580 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A2663C782F90C9FA008D27B0 /* Build configuration list for PBXProject "AuraApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -401,6 +620,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		4BBD63CE9058E1B326316AD4 /* OpenMeteoSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A20841712F9B4E810089833E /* XCRemoteSwiftPackageReference "sdk" */;
+			productName = OpenMeteoSdk;
+		};
 		A20841722F9B4E810089833E /* OpenMeteoSdk */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A20841712F9B4E810089833E /* XCRemoteSwiftPackageReference "sdk" */;

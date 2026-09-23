@@ -56,19 +56,18 @@ struct AnimatedMeshBackground: View {
     TimelineView(.animation()) { timeline in
       let time = timeline.date.timeIntervalSinceReferenceDate
 
-      withAnimation(
-        .easeInOut(duration: 0.5).repeatForever(autoreverses: true)
-      ) {
-        MeshGradient(
-          width: width,
-          height: height,
-          points: animatedPoints(for: time),
-          colors: colors,
-          background: .white,
-          smoothsColors: true,
-          colorSpace: .device
-        )
-      }
+      // No `withAnimation` here: TimelineView already supplies a fresh value
+      // every frame, so wrapping this in a repeating animation installed a new
+      // animation transaction on every one of those frames.
+      MeshGradient(
+        width: width,
+        height: height,
+        points: animatedPoints(for: time),
+        colors: colors,
+        background: .white,
+        smoothsColors: true,
+        colorSpace: .device
+      )
     }
     .ignoresSafeArea()
   }

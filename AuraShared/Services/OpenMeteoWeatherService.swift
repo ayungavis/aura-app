@@ -1,0 +1,104 @@
+//
+//  OpenMeteoWeatherService.swift
+//  AuraApp
+//
+//  Created by Wahyu Kurniawan on 23/04/26.
+//
+
+import CoreLocation
+import OpenMeteoSdk
+
+/// Open-Meteo backend. Used as the fallback when WeatherKit is unavailable.
+///
+/// Caching is deliberately *not* handled here — `WeatherServiceRouter` owns the
+/// shared cache so both backends populate the same entry.
+nonisolated final class OpenMeteoWeatherService: WeatherServiceProtocol {
+  static let shared = OpenMeteoWeatherService()
+
+  private let baseURL = "https://api.open-meteo.com/v1/forecast"
+
+  func fetchWeatherData(for location: CLLocation) async throws -> WeatherResponse {
+    let lat = location.coordinate.latitude
+    let lon = location.coordinate.longitude
+
+    var components = URLComponents(string: baseURL)!
+    components.queryItems = [
+      URLQueryItem(name: "latitude", value: "\(lat)"),
+      URLQueryItem(name: "longitude", value: "\(lon)"),
+      URLQueryItem(name: "current", value: "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day"),
+      URLQueryItem(name: "hourly", value: "temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,precipitation_probability,is_day"),
+      URLQueryItem(name: "timezone", value: "auto"),
+      URLQueryItem(name: "forecast_hours", value: "24"),
+      URLQueryItem(name: "format", value: "flatbuffers"),
+    ]
+
+    guard let url = components.url else {
+      throw URLError(.badURL)
+    }
+
+    AppLogger.networkRequest("openMeteoWeather: \(lat), \(lon)")
+
+    let responses = try await WeatherApiResponse.fetch(url: url)
+
+    guard let response = responses.first else {
+      throw URLError(.cannotParseResponse)
+    }
+
+    let weatherResponse = parseResponse(response)
+    AppLogger.weatherUpdate("Open-Meteo: \(weatherResponse.current.condition.description)")
+
+    return weatherResponse
+  }
+
+  /// current param order: temperature_2m(0), apparent_temperature(1), relative_humidity_2m(2),
+  ///   weather_code(3), wind_speed_10m(4), wind_direction_10m(5), is_day(6)
+  /// hourly param order: temperature_2m(0), weather_code(1), relative_humidity_2m(2), wind_speed_10m(3), precipitation_probability(4), is_day(5)
+  private func parseResponse(_ response: WeatherApiResponse) -> WeatherResponse {
+    let utcOffset = response.utcOffsetSeconds
+    let current = response.current!
+
+    let currentWeather = CurrentWeatherData(
+      temperature: Double(current.variables(at: 0)!.value),
+      apparentTemperature: Double(current.variables(at: 1)!.value),
+      humidity: Int(current.variables(at: 2)!.value),
+      windSpeed: Double(current.variables(at: 4)!.value),
+      windDirection: Double(current.variables(at: 5)!.value),
+      condition: WeatherCondition(wmoCode: Int(current.variables(at: 3)!.value)),
+      isDay: current.variables(at: 6)!.value == 1.0,
+      localTime: {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(secondsFromGMT: Int(utcOffset))
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: Date())
+      }()
+    )
+
+    let hourly = response.hourly!
+    let times = hourly.getDateTime(offset: 0)
+    let temperatures = hourly.variables(at: 0)!.values
+    let weatherCodes = hourly.variables(at: 1)!.values
+    let humidities = hourly.variables(at: 2)!.values
+    let windSpeeds = hourly.variables(at: 3)!.values
+    let precipitationProbabilities = hourly.variables(at: 4)!.values
+    let isDayValues = hourly.variables(at: 5)!.values
+
+    let hourlyData: [HourlyWeatherData] = (0 ..< times.count).map { i in
+      HourlyWeatherData(
+        date: times[i],
+        temperature: Double(temperatures[i]),
+        condition: WeatherCondition(wmoCode: Int(weatherCodes[i])),
+        humidity: Int(humidities[i]),
+        windSpeed: Double(windSpeeds[i]),
+        precipitationProbability: Int(precipitationProbabilities[i]),
+        isDay: isDayValues[i] == 1.0
+      )
+    }
+
+    return WeatherResponse(
+      current: currentWeather,
+      hourly: hourlyData,
+      timezoneOffset: Int(utcOffset),
+      source: .openMeteo
+    )
+  }
+}

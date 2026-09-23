@@ -5,40 +5,42 @@
 //  Created by Wahyu Kurniawan on 26/04/26.
 //
 
-import Combine
 import Foundation
+import Observation
 import SwiftUI
 
 @MainActor
-class ListViewModel: ObservableObject {
-  @Published var locations: [LocationItem] = []
-  @Published var isLoading = false
-  @Published var isFunFactLoading = false
-  @Published var error: Error?
-  @Published var funFact: String?
+@Observable
+final class ListViewModel {
+  var places: [Place] = []
+  var isLoading = false
+  var isFunFactLoading = false
+  var error: Error?
+  var funFact: String?
 
   let category: String
-  let tripAdvisorCategory: String?
-  let latLong: String?
-  private let service: TripAdvisorServiceProtocol
-  private let recommendationService: RecommendationServiceProtocol
+  let placeKind: PlaceKind
+  let searchCenter: SearchCenter?
+  @ObservationIgnored private let service: PlacesServiceProtocol
+  @ObservationIgnored private let recommendationService: RecommendationServiceProtocol
 
   init(
     category: String,
-    tripAdvisorCategory: String? = nil,
-    latLong: String? = nil,
-    service: TripAdvisorServiceProtocol = TripAdvisorService(),
+    placeKind: PlaceKind,
+    searchCenter: SearchCenter?,
+    service: PlacesServiceProtocol = MapKitPlacesService(),
     recommendationService: RecommendationServiceProtocol = RecommendationServiceFactory.create()
   ) {
     self.category = category
-    self.tripAdvisorCategory = tripAdvisorCategory
-    self.latLong = latLong
+    self.placeKind = placeKind
+    self.searchCenter = searchCenter
     self.service = service
     self.recommendationService = recommendationService
   }
+
   func onAppear() {
     Task {
-      await loadLocations()
+      await loadPlaces()
       await loadFunFact()
     }
   }
@@ -46,57 +48,22 @@ class ListViewModel: ObservableObject {
   func retry() {
     error = nil
     Task {
-      await loadLocations()
+      await loadPlaces()
       await loadFunFact()
     }
   }
 
-  private func loadLocations() async {
+  private func loadPlaces() async {
     isLoading = true
     error = nil
     defer { isLoading = false }
 
     do {
-      let fetchedLocations = try await service.searchLocations(
-        query: category + " Bali",
-        latLong: latLong,
-        category: tripAdvisorCategory ?? "attractions",
-        radius: 60,
-        radiusUnit: "km"
-      )
-
-      locations = fetchedLocations.sorted {
-        let d1 = Double($0.distance ?? "") ?? Double.infinity
-        let d2 = Double($1.distance ?? "") ?? Double.infinity
-        return d1 < d2
-      }
-
-      AppLogger.placesLoaded("search", count: locations.count)
-      await fetchImagesForLocations()
+      places = try await service.searchPlaces(query: category, kind: placeKind, near: searchCenter)
+      AppLogger.placesLoaded("search", count: places.count)
     } catch {
       self.error = error
-      AppLogger.placesError("searchLocations", error: error)
-    }
-  }
-
-  private func fetchImagesForLocations() async {
-    await withTaskGroup(of: (Int, String?).self) { group in
-      for index in locations.indices {
-        let locationId = locations[index].locationId
-        group.addTask {
-          do {
-            let photos = try await self.service.getLocationPhotos(locationId: locationId)
-            return (index, photos.first?.images?.medium?.url)
-          } catch {
-            AppLogger.networkError("photos_\(locationId)", error: error)
-            return (index, nil)
-          }
-        }
-      }
-
-      for await (index, imageUrl) in group {
-        locations[index].imageUrl = imageUrl
-      }
+      AppLogger.placesError("searchPlaces", error: error)
     }
   }
 

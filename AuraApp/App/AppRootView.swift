@@ -31,15 +31,15 @@ struct AppRootView: View {
         CurrentWeatherView(navigationNamespace: navigationNamespace)
           .navigationDestination(for: AppDestination.self) { destination in
             switch destination {
-            case .list(let category, let imageURL, let imageData, let imageName, let tripAdvisorCategory, let latLong):
+            case .list(let category, let imageURL, let imageData, let imageName, let placeKind, let searchCenter):
               let image = imageData.flatMap { UIImage(data: $0) }
               ListView(
                 category: category,
                 initialImage: image,
                 imageURL: imageURL,
                 imageName: imageName,
-                tripAdvisorCategory: tripAdvisorCategory,
-                latLong: latLong,
+                placeKind: placeKind,
+                searchCenter: searchCenter,
                 navigationNamespace: navigationNamespace
               )
             }
