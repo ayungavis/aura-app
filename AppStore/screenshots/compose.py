@@ -6,7 +6,8 @@ Frames raw iPhone screenshots into App Store marketing images.
     .venv/bin/python AppStore/screenshots/compose.py
 
 Reads   AppStore/screenshots/raw/<name>.png   (any iPhone resolution)
-Writes  AppStore/screenshots/output/6.9/<n>-<name>.png   (1320 x 2868)
+Writes  AppStore/screenshots/output/<size>/<n>-<name>.png
+        6.9/ (1320 x 2868) and 6.5/ (1284 x 2778)
 
 Captions live in SHOTS below; a shot whose raw file is missing is skipped.
 """
@@ -18,10 +19,14 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 ROOT = Path(__file__).resolve().parent
 FONTS = ROOT.parents[1] / "AuraApp" / "Resources" / "Fonts"
 RAW = ROOT / "raw"
-OUT = ROOT / "output" / "6.9"
+OUT = ROOT / "output"
 
-# 6.9" display — App Store Connect scales this down for every smaller iPhone.
-CANVAS = (1320, 2868)
+# App Store Connect display sizes. Layout values below are for 6.9" and scale
+# with the canvas width.
+CANVASES = {
+    "6.9": (1320, 2868),
+    "6.5": (1284, 2778),
+}
 
 # Matches the app's sky gradient.
 TOP = (160, 136, 245)
@@ -57,17 +62,21 @@ def rounded(img: Image.Image, radius: int) -> Image.Image:
     return out
 
 
-def compose(raw_path: Path, title: str, subtitle: str) -> Image.Image:
-    canvas = gradient(CANVAS).convert("RGBA")
+def compose(raw_path: Path, title: str, subtitle: str, size: tuple[int, int]) -> Image.Image:
+    canvas = gradient(size).convert("RGBA")
     draw = ImageDraw.Draw(canvas)
-    cw, ch = CANVAS
+    cw, ch = size
+    scale = cw / 1320
+
+    def px(value: float) -> int:
+        return round(value * scale)
 
     # Captions
-    title_font = font("InstrumentSerif-Regular.ttf", 150)
-    sub_font = font("InstrumentSans-Regular.ttf", 52)
-    y = 190
-    draw.multiline_text((cw / 2, y), title, font=title_font, fill=INK, anchor="ma", align="center", spacing=6)
-    y += draw.multiline_textbbox((0, 0), title, font=title_font, spacing=6)[3] + 40
+    title_font = font("InstrumentSerif-Regular.ttf", px(150))
+    sub_font = font("InstrumentSans-Regular.ttf", px(52))
+    y = px(190)
+    draw.multiline_text((cw / 2, y), title, font=title_font, fill=INK, anchor="ma", align="center", spacing=px(6))
+    y += draw.multiline_textbbox((0, 0), title, font=title_font, spacing=px(6))[3] + px(40)
     draw.text((cw / 2, y), subtitle, font=sub_font, fill=INK + (205,), anchor="ma")
 
     # Device screenshot, bleeding off the bottom edge
@@ -77,32 +86,34 @@ def compose(raw_path: Path, title: str, subtitle: str) -> Image.Image:
     shot = rounded(shot, radius=int(target_w * 0.115))
 
     x = (cw - target_w) // 2
-    top = 860
-    shadow = Image.new("RGBA", CANVAS, (0, 0, 0, 0))
+    top = px(860)
+    shadow = Image.new("RGBA", size, (0, 0, 0, 0))
     ImageDraw.Draw(shadow).rounded_rectangle(
-        [(x, top + 30), (x + target_w, top + shot.height + 30)],
+        [(x, top + px(30)), (x + target_w, top + shot.height + px(30))],
         radius=int(target_w * 0.115),
         fill=(20, 0, 60, 120),
     )
-    canvas.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(50)))
+    canvas.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(px(50))))
     canvas.alpha_composite(shot, (x, top))
 
     return canvas.convert("RGB")
 
 
 def main() -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
     made = 0
     for index, (name, title, subtitle) in enumerate(SHOTS, start=1):
         raw = RAW / f"{name}.png"
         if not raw.exists():
             print(f"skip  {name}: add {raw.relative_to(ROOT.parents[1])}")
             continue
-        out = OUT / f"{index:02d}-{name}.png"
-        compose(raw, title, subtitle).save(out, optimize=True)
-        print(f"wrote {out.relative_to(ROOT.parents[1])}")
+        for label, size in CANVASES.items():
+            out_dir = OUT / label
+            out_dir.mkdir(parents=True, exist_ok=True)
+            out = out_dir / f"{index:02d}-{name}.png"
+            compose(raw, title, subtitle, size).save(out, optimize=True)
+            print(f"wrote {out.relative_to(ROOT.parents[1])}")
         made += 1
-    print(f"{made}/{len(SHOTS)} screenshots")
+    print(f"{made}/{len(SHOTS)} screenshots, {len(CANVASES)} sizes each")
 
 
 if __name__ == "__main__":

@@ -36,7 +36,8 @@ Then:
 python3 -m venv .venv && .venv/bin/pip install pillow
 .venv/bin/python AppStore/screenshots/compose.py
 ```
-Upload everything in `AppStore/screenshots/output/6.9/`. Captions are in
+Upload `output/6.9/` to the 6.9" slot, or `output/6.5/` if App Store Connect
+asks for 6.5" (1284 × 2778). Captions are in
 `SHOTS` at the top of `compose.py`.
 
 ## 4. Archive and upload
