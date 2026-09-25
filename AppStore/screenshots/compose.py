@@ -29,12 +29,9 @@ BOTTOM = (58, 29, 176)
 INK = (255, 255, 255)
 
 SHOTS = [
-    ("home", "Weather with\na mood", "A calm read of the sky, written for you"),
-    ("forecast", "Plans that fit\nthe forecast", "Activities and food picked for today's weather"),
-    ("generated", "Imagined by\nApple Intelligence", "Create an illustration for any idea"),
+    ("home", "Plans that fit\nthe forecast", "Activities and food picked for today's weather"),
     ("places", "Find it\nnearby", "Places that match the plan, around you"),
-    ("detail", "Know before\nyou go", "Ratings, hours and directions in one tap"),
-    ("widget", "Your sky,\nat a glance", "Home Screen widgets in two sizes"),
+    ("detail", "Know before\nyou go", "Hours and directions in one tap"),
 ]
 
 

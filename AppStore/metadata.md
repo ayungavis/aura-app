@@ -49,7 +49,7 @@ WEATHER, AT A GLANCE
 PLANS THAT FIT THE FORECAST
 • Activity ideas that make sense for right now: a beach walk when it's clear, a museum when it rains
 • Food suggestions to match: something cold on a hot afternoon, something warm on a rainy night
-• Tap any idea to see matching places nearby, then open the Apple Maps card for photos, ratings, hours and directions
+• Tap any idea to see matching places nearby, then open the Apple Maps card for hours and directions
 
 POWERED BY APPLE INTELLIGENCE
 On supported devices, suggestions are written on your device by Apple Intelligence, and you can create an illustration for any idea with Image Playground. On other devices, Aura still gives you weather-based suggestions.

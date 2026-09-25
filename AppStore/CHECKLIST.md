@@ -21,12 +21,12 @@ device looks right. Any recent iPhone works; the script scales to 1320 × 2868.
 
 | File in `AppStore/screenshots/raw/` | What to capture |
 |---|---|
-| `home.png` | Top of the main screen: temperature, summary, hourly row |
-| `forecast.png` | Scrolled down: activities and food rows, ideally with images |
-| `generated.png` | The Image Playground sheet open on a card (iOS 27), or cards with images |
-| `places.png` | The list of places after tapping a card |
+| `home.png` | Main screen: temperature, summary, hourly row and suggestion cards |
+| `places.png` | A suggestion's detail with its list of nearby places |
 | `detail.png` | The Apple Maps place card for one of those places |
-| `widget.png` | Home Screen with the Aura widgets |
+
+Three shots is enough for 1.0: place details are Apple Maps' own card now, so
+there is no gallery or ratings screen to show.
 
 Tips: pick a sunny daytime moment, charge the battery to 100%, and turn off
 Airplane Mode so the status bar looks clean.
